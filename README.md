@@ -31,3 +31,30 @@ Contextualização, modelagem, análise dos resultados obtidos, avaliação do d
 * Slides para a apresentação.
 * **Duração da apresentação presencial:** 10 minutos.
 * **Duração do vídeo:** Entre 12 e 18 minutos com foco apenas no funcionamento e na explicação das *features* produzidas por cada aluno do grupo.
+
+## Organização simples do projeto
+
+Projeto em Python para rotas de carro no Coração Eucarístico, desenvolvido por seis integrantes. Nesta etapa há somente diretórios e documentação, sem arquivos Python ou resultados produzidos.
+
+```text
+TrabalhoPraticoGrafos/
+├── codigo/
+│   ├── README.MD
+│   └── dados/
+├── artefatos/
+│   ├── planejamento/
+│   ├── diagramas/
+│   ├── apresentacao/
+│   └── resultados/
+└── Relatorio/
+```
+
+Na implementação, o código ficará diretamente em `codigo`, começando por cinco arquivos: `grafo.py`, `mapa.py`, `rotas.py`, `app.py` e `test_rotas.py`. Esses arquivos ainda não foram criados. O desenho prevê quatro classes do modelo; leitura, buscas e coordenação serão funções simples.
+
+- [Organização do código](codigo/README.MD).
+- [Arquitetura e responsabilidades](artefatos/planejamento/arquitetura.md).
+- [Clean Code e explicação do código](artefatos/planejamento/clean_code.md).
+- [Divisão entre os seis integrantes](artefatos/planejamento/equipe.md).
+- [Testes e desempenho](artefatos/planejamento/validacao.md).
+- [Artefatos](artefatos/README.MD).
+- [Relatório](Relatorio/README.MD).

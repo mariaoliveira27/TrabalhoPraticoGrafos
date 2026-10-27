@@ -1,0 +1,26 @@
+# Ambientes locais de Python
+.venv/
+venv/
+
+# Arquivos gerados pelo interpretador e pelas ferramentas
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Configuração local do ambiente
+.env
+.env.*
+!.env.example
+
+# Temporários dos editores
+*~
+*.swp
+
+# Dados, resultados e artefatos acadêmicos não são ignorados de forma global.

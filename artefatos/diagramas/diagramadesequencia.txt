@@ -1,0 +1,29 @@
+@startuml
+autonumber
+actor "Usuário" as User
+participant "Interface" as UI
+participant "Grafo" as Grafo
+participant "ResultadoRota" as Resultado
+
+User -> UI: Iniciar aplicação / Carregar dados do mapa
+activate UI
+
+' Populando o grafo diretamente com base na estrutura de classes
+UI -> Grafo: adicionarVertice(v)
+UI -> Grafo: adicionarAresta(origem, destino, ...)
+
+User -> UI: Solicitar rota (Origem, Destino, Critério)
+UI -> Grafo: calcularMenorCaminho(inicio, fim, criterio)
+activate Grafo
+
+' O grafo processa internamente e instancia o ResultadoRota
+Grafo -> Resultado **: new ResultadoRota(caminho, ...)
+Resultado --> Grafo: objeto criado
+
+Grafo --> UI: retorna ResultadoRota
+deactivate Grafo
+
+UI --> User: Exibir rota e métricas (exibirResumo())
+deactivate UI
+
+@enduml

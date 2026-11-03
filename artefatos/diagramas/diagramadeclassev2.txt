@@ -1,0 +1,71 @@
+@startuml
+title Modelo de classes - Otimizacao de rotas urbanas
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam roundCorner 10
+skinparam linetype ortho
+
+skinparam class {
+  BackgroundColor #F5F8FC
+  BorderColor #345678
+  FontColor #1F2937
+  HeaderBackgroundColor #DCEAF7
+}
+
+skinparam note {
+  BackgroundColor #FFFBEA
+  BorderColor #D6B656
+  FontColor #4A4326
+}
+
+top to bottom direction
+
+class Grafo {
+  - vertices: Map<String, Vertice>
+  - adjacencias: Map<String, List<Aresta>>
+  --
+  + adicionarVertice(vertice: Vertice): void
+  + adicionarAresta(aresta: Aresta): void
+}
+
+class Aresta {
+  - id: String
+  - origem: Vertice
+  - destino: Vertice
+  - distanciaMetros: Double
+  - velocidadeKmH: Double
+  - tempoSegundos: Double
+  --
+  + getPeso(criterio: String): Double
+}
+
+class Vertice {
+  - id: String
+  - nome: String?
+  - latitude: Double
+  - longitude: Double
+  --
+  + getId(): String
+  + getNome(): String?
+}
+
+class ResultadoRota {
+  - situacao: String
+  - caminho: List<Aresta>
+  - distanciaTotalMetros: Double?
+  - tempoTotalSegundos: Double?
+  - nosExpandidos: Integer
+}
+
+Grafo "1" *-- "0..*" Vertice : possui
+Grafo "1" *-- "0..*" Aresta : possui
+
+Aresta --> "1" Vertice : origem
+Aresta --> "1" Vertice : destino
+
+ResultadoRota --> "0..*" Aresta : caminho {ordered}
+
+
+@enduml

@@ -1,4 +1,4 @@
-# TrabalhoPraticoGrafos
+# Trabalho Prático Grafos
 
 Otimização de rotas urbanas com base em mapas: o sistema deve receber mapas com pontos de interesse e calcular rotas otimizadas com base em tempo, distância ou custo.
 
@@ -49,7 +49,7 @@ TrabalhoPraticoGrafos/
 └── Relatorio/
 ```
 
-Na implementação, o código ficará diretamente em `codigo`, começando por cinco arquivos: `grafo.py`, `mapa.py`, `rotas.py`, `app.py` e `test_rotas.py`. Esses arquivos ainda não foram criados. O desenho prevê quatro classes do modelo; leitura, buscas e coordenação serão funções simples.
+Na implementação, o código ficará diretamente em `codigo`, começando por cinco arquivos: `grafo.py`, `mapa.py`, `rotas.py`, `app.py` (interface interativa desenvolvida com **Streamlit + Folium**) e `test_rotas.py`. Esses arquivos ainda não foram criados. O desenho prevê quatro classes centrais do modelo (`Vertice`, `Aresta`, `Grafo` e `ResultadoRota`), com suporte a otimização por **tempo**, **distância** ou **custo financeiro**. Leitura de dados, algoritmos de busca (Dijkstra e A*) e testes serão modulares.
 
 - [Organização do código](codigo/README.MD).
 - [Arquitetura e responsabilidades](artefatos/planejamento/arquitetura.md).

@@ -1,5 +1,5 @@
 @startuml
-title Diagrama de Sequência - Otimização de Rotas Urbanas
+title Diagrama de Sequência - Otimização de Rotas Urbanas com Método de Dijkstra
 
 skinparam backgroundColor white
 skinparam shadowing false
@@ -13,45 +13,87 @@ skinparam participant {
 }
 
 actor "Usuário" as User
-participant "Interface" as UI
-participant "Grafo" as Grafo
+participant "Interface\n(Streamlit + Folium)" as UI
+participant "mapa.py\n(Módulo de Dados)" as Mapa
+participant "grafo: Grafo" as Grafo
+participant "rotas.py\n(Método de Dijkstra)" as Rotas
 participant "aresta: Aresta" as Aresta
 participant "resultado: ResultadoRota" as Resultado
 
-== Inicialização ==
-User -> UI: Iniciar aplicação / Carregar dados do mapa
+== Inicialização e Carga dos Dados ==
+User -> UI: Iniciar aplicação / Carregar mapa
 activate UI
 
-UI -> Grafo: adicionarVertice(v)
-UI -> Grafo: adicionarAresta(aresta)
+UI -> Mapa: carregarMapa("mapa.json", "pontos_interesse.json")
+activate Mapa
 
-== Solicitação de Rota ==
-User -> UI: Solicitar rota (Origem, Destino, Critério)
-UI -> Grafo: calcularMenorCaminho(inicio, fim, criterio)
+create Grafo
+Mapa -> Grafo **: new Grafo()
 activate Grafo
-
-note right of Grafo
-  O algoritmo de busca (ex: Dijkstra)
-  itera sobre os vértices e arestas
-end note
-
-loop Para cada aresta avaliada no grafo
-  Grafo -> Aresta: getPeso(criterio)
-  activate Aresta
-  Aresta --> Grafo: peso (Double)
-  deactivate Aresta
-end
-
-create Resultado
-Grafo -> Resultado **: new ResultadoRota()
-activate Resultado
-Resultado --> Grafo: instância criada
-deactivate Resultado
-
-Grafo --> UI: retorna ResultadoRota
+Grafo --> Mapa: instância criada
 deactivate Grafo
 
-UI --> User: Exibir rota, mapa e métricas (exibirResumo())
+loop Para cada nó viário e POI
+  Mapa -> Grafo: adicionarVertice(v)
+end
+
+loop Para cada segmento viário
+  Mapa -> Grafo: adicionarAresta(aresta)
+end
+
+Mapa --> UI: Grafo construído e lista de POIs
+deactivate Mapa
+
+== Solicitação e Cálculo da Rota Otimizada ==
+User -> UI: Selecionar Origem, Destino e Critério\n(Critério: distância, tempo ou custo)
+UI -> Rotas: calcularRotaDijkstra(grafo, origem, destino, criterio)
+activate Rotas
+
+note right of Rotas
+  Implementa o Método de Dijkstra (1959):
+  1. Inicializa dist[v] = infinito, pred[v] = nulo, dist[origem] = 0.
+  2. Todos os vértices iniciam como imaturos.
+  3. Fila de prioridade (min-heap) para selecionar vértice de menor estimativa.
+end note
+
+loop Enquanto existirem vértices imaturos na fila de prioridade
+  Rotas -> Grafo: getAdjacencias(v)
+  activate Grafo
+  Grafo --> Rotas: listaArestas
+  deactivate Grafo
+
+  loop Para cada arco (v, w) que sai de v
+    Rotas -> Aresta: getPeso(criterio)
+    activate Aresta
+    Aresta --> Rotas: c (Double)
+    deactivate Aresta
+
+    note over Rotas
+      Verifica se o arco está tenso:
+      dist[v] + c < dist[w]
+      Se tenso, realiza relaxação:
+      dist[w] = dist[v] + c
+      pred[w] = v
+    end note
+  end
+  note over Rotas: Vértice v é declarado maduro
+end
+
+note over Rotas
+  Reconstrói caminho da origem ao destino
+  percorrendo os predecessores em pred[]
+end note
+
+create Resultado
+Rotas -> Resultado **: new ResultadoRota(situacao, caminho, distTotal, tempoTotal, custoTotal, nosExpandidos)
+activate Resultado
+Resultado --> Rotas: instância criada
+deactivate Resultado
+
+Rotas --> UI: retorna ResultadoRota
+deactivate Rotas
+
+UI --> User: Exibir rota interativa no mapa (Folium) e painel de métricas (Streamlit)
 deactivate UI
 
 @enduml

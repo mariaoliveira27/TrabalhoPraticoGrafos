@@ -13,7 +13,7 @@ Clean Code será aplicado por meio de organização simples, responsabilidades c
 ## Legibilidade
 
 - Usar nomes descritivos em português, sem acentos nos identificadores.
-- Indicar unidades, como `distancia_m` e `tempo_s`.
+- Indicar unidades, como `distancia_m`, `tempo_s` e `custo_reais`.
 - Declarar tipos nas entradas, saídas e estruturas relevantes.
 - Dar nomes às constantes e às hipóteses do modelo.
 - Evitar repetição, estado global e dependências ocultas.

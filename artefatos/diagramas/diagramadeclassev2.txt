@@ -1,5 +1,5 @@
 @startuml
-title Modelo de classes - Otimizacao de rotas urbanas
+title Modelo de classes - Otimização de rotas urbanas
 
 skinparam backgroundColor white
 skinparam shadowing false
@@ -28,6 +28,8 @@ class Grafo {
   --
   + adicionarVertice(vertice: Vertice): void
   + adicionarAresta(aresta: Aresta): void
+  + getVertice(id: String): Vertice?
+  + getAdjacencias(id: String): List<Aresta>
 }
 
 class Aresta {
@@ -37,9 +39,17 @@ class Aresta {
   - distanciaMetros: Double
   - velocidadeKmH: Double
   - tempoSegundos: Double
+  - custoReais: Double
   --
   + getPeso(criterio: String): Double
 }
+
+note right of Aresta::getPeso
+  Critérios de otimização:
+  * "distancia": peso = distanciaMetros
+  * "tempo": peso = tempoSegundos
+  * "custo": peso = custoReais (combustível)
+end note
 
 class Vertice {
   - id: String
@@ -49,6 +59,8 @@ class Vertice {
   --
   + getId(): String
   + getNome(): String?
+  + getLatitude(): Double
+  + getLongitude(): Double
 }
 
 class ResultadoRota {
@@ -56,7 +68,11 @@ class ResultadoRota {
   - caminho: List<Aresta>
   - distanciaTotalMetros: Double?
   - tempoTotalSegundos: Double?
+  - custoTotalReais: Double?
   - nosExpandidos: Integer
+  --
+  + getDistanciaKm(): Double?
+  + getTempoMinutos(): Double?
 }
 
 Grafo "1" *-- "0..*" Vertice : possui
@@ -66,6 +82,5 @@ Aresta --> "1" Vertice : origem
 Aresta --> "1" Vertice : destino
 
 ResultadoRota --> "0..*" Aresta : caminho {ordered}
-
 
 @enduml

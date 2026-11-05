@@ -1,0 +1,11 @@
+# Dependências do Projeto - Trabalho Prático de Grafos (Tema 2)
+# Execução da interface interativa e mapas
+streamlit>=1.30.0
+folium>=0.15.0
+streamlit-folium>=0.16.0
+
+# Testes automatizados e medições
+pytest>=8.0.0
+
+# Requisições e manipulação de dados
+requests>=2.31.0

@@ -1,40 +1,40 @@
-# Codigo
+# Código
 
 ## Estrutura simples
 
-A implementação futura ficará diretamente nesta pasta, com apenas `dados` como subpasta. Nesta etapa há somente organização e documentação: nenhum arquivo Python foi criado.
+A implementação futura ficará diretamente nesta pasta, com apenas `dados` como subpasta. Nesta etapa inicial há somente organização e documentação: nenhum arquivo Python foi criado ainda.
 
-| Arquivo futuro, ainda não criado | Responsabilidade | Responsável |
-| --- | --- | --- |
-| `grafo.py` | Classes `Vertice`, `Aresta`, `Grafo` e `ResultadoRota`; cálculos geográficos simples | Integrante 2 |
-| `mapa.py` | Funções para ler, validar e converter o mapa em um grafo próprio | Integrante 1, com apoio do 2 nas regras viárias |
-| `rotas.py` | Funções Dijkstra e A*, heurísticas e reconstrução do caminho | Integrantes 3 e 4 |
-| `app.py` | Controles da interface, chamada das funções e apresentação do mapa e das métricas | Integrante 5 |
-| `test_rotas.py` | Testes do grafo, da importação, dos algoritmos e da integração | Integrante 6, com testes fornecidos por todos |
-| `dados` | Mapa original, pontos de interesse e informação da origem dos dados | Integrante 1 |
+| Arquivo futuro, ainda não criado | Responsabilidade | Stack / Detalhes | Responsável |
+| --- | --- | --- | --- |
+| `grafo.py` | Classes `Vertice`, `Aresta`, `Grafo` e `ResultadoRota`; pesos para distância, tempo e custo financeiro; cálculos geográficos (Haversine) | Python padrão (`math`, `typing`) | Integrante 2 |
+| `mapa.py` | Funções para ler, validar e converter o snapshot OSM e POIs em um grafo próprio | Python padrão (`json`, `typing`) | Integrante 1, com apoio do 2 |
+| `rotas.py` | Funções de busca Dijkstra e A* (para distância, tempo e custo), heurísticas admissíveis e reconstrução do caminho | Python padrão (`heapq`, `typing`) | Integrantes 3 e 4 |
+| `app.py` | Interface gráfica interativa: mapa interativo, seleção de POIs, traçado da rota e métricas | **Streamlit + Folium** (`streamlit-folium`) | Integrante 5 |
+| `test_rotas.py` | Testes automatizados do grafo, importação, algoritmos, consistência de custo e benchmarks | `pytest`, `time` | Integrante 6, com testes de todos |
+| `dados` | Arquivos `mapa.json` (OSM Coreu), `pontos_interesse.json` e documentação de origem | JSON / GeoJSON | Integrante 1 |
 
-Os cinco arquivos são o ponto de partida, sem obrigação de criar um arquivo para cada classe. Novos arquivos só serão acrescentados se houver uma necessidade concreta.
+Os cinco arquivos são o ponto de partida arquitetural enxuto, sem camadas desnecessárias de serviços ou wrappers.
 
 ## Fluxo da ferramenta
 
-A interface chama as funções de leitura do mapa. Essas funções montam o grafo próprio. Depois, a interface chama Dijkstra ou A* e apresenta o resultado. As buscas não leem arquivos nem desenham mapas.
-
-Não haverá camadas separadas de serviço, importador ou construtor. Leitura, validação e montagem continuarão separadas em funções pequenas dentro de `mapa.py`. Os algoritmos serão funções em `rotas.py`, sem classes que apenas envolvam sua execução.
+1. O usuário abre o aplicativo via Streamlit (`streamlit run codigo/app.py`).
+2. A interface aciona `mapa.py`, que carrega os dados locais e monta a estrutura em memória de `Grafo`.
+3. O usuário seleciona origem e destino (a partir dos 10 pontos de interesse ou nós do mapa), o critério de otimização (distância, tempo ou custo financeiro) e o algoritmo desejado (Dijkstra ou A*).
+4. `app.py` aciona a função de busca em `rotas.py`.
+5. O algoritmo explora os nós, relaxa as arestas e devolve o `ResultadoRota`.
+6. `app.py` recebe o resultado, plota o traçado colorido da rota sobre o mapa Folium e exibe na barra lateral o tempo de processamento, nós expandidos, distância em metros/km, tempo estimado e custo financeiro em Reais.
 
 ## Clean Code
 
-- Nomes descritivos, tipos e unidades explícitas.
-- Funções com uma responsabilidade, sem duplicar regras.
-- Comentários explicando decisões e os trechos difíceis.
-- Grafo e algoritmos implementados pelo grupo.
-- Todos devem conseguir explicar o fluxo completo e os algoritmos.
+- Nomes descritivos, tipos e unidades explícitas (`distancia_m`, `tempo_s`, `custo_reais`).
+- Funções com responsabilidade única, sem duplicação de regras.
+- Grafo e algoritmos implementados pelo grupo (sem bibliotecas externas para a busca em si).
+- Todos os membros aptos a explicar linha a linha a implementação.
 
 ## Documentação de apoio
 
 - [Arquitetura simples e classes](../artefatos/planejamento/arquitetura.md).
-- [Clean Code](../artefatos/planejamento/clean_code.md).
+- [Critérios de Clean Code](../artefatos/planejamento/clean_code.md).
 - [Divisão entre os seis integrantes](../artefatos/planejamento/equipe.md).
 - [Testes e avaliação de desempenho](../artefatos/planejamento/validacao.md).
-- [Dados](dados/README.md).
-
-As orientações de testes e experimentos ficam em `artefatos`, sem pastas adicionais em `codigo`. Ainda não há comandos de instalação ou execução.
+- [Dados do mapa](dados/README.md).

@@ -55,6 +55,7 @@ Na implementação, o código ficará diretamente em `codigo`, começando por ci
 - [Arquitetura e responsabilidades](artefatos/planejamento/arquitetura.md).
 - [Clean Code e explicação do código](artefatos/planejamento/clean_code.md).
 - [Divisão entre os seis integrantes](artefatos/planejamento/equipe.md).
+- [Issues planejadas para GitHub Projects](artefatos/planejamento/issues_github.md).
 - [Testes e desempenho](artefatos/planejamento/validacao.md).
 - [Artefatos](artefatos/README.MD).
 - [Relatório](Relatorio/README.MD).

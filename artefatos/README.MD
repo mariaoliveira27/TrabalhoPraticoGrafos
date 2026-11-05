@@ -13,6 +13,7 @@
 - [Arquitetura simples](planejamento/arquitetura.md).
 - [Critérios de Clean Code](planejamento/clean_code.md).
 - [Divisão da equipe](planejamento/equipe.md).
+- [Plano de issues para GitHub Projects](planejamento/issues_github.md).
 - [Testes e desempenho](planejamento/validacao.md).
 - [Diagramas](diagramas/README.md).
 - [Apresentações](apresentacao/README.md).

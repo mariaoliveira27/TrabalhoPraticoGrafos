@@ -1,29 +1,57 @@
 @startuml
-autonumber
+title Diagrama de Sequência - Otimização de Rotas Urbanas
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+skinparam autonumber true
+
+skinparam participant {
+  BackgroundColor #F5F8FC
+  BorderColor #345678
+  FontColor #1F2937
+}
+
 actor "Usuário" as User
 participant "Interface" as UI
 participant "Grafo" as Grafo
-participant "ResultadoRota" as Resultado
+participant "aresta: Aresta" as Aresta
+participant "resultado: ResultadoRota" as Resultado
 
+== Inicialização ==
 User -> UI: Iniciar aplicação / Carregar dados do mapa
 activate UI
 
-' Populando o grafo diretamente com base na estrutura de classes
 UI -> Grafo: adicionarVertice(v)
-UI -> Grafo: adicionarAresta(origem, destino, ...)
+UI -> Grafo: adicionarAresta(aresta)
 
+== Solicitação de Rota ==
 User -> UI: Solicitar rota (Origem, Destino, Critério)
 UI -> Grafo: calcularMenorCaminho(inicio, fim, criterio)
 activate Grafo
 
-' O grafo processa internamente e instancia o ResultadoRota
-Grafo -> Resultado **: new ResultadoRota(caminho, ...)
-Resultado --> Grafo: objeto criado
+note right of Grafo
+  O algoritmo de busca (ex: Dijkstra)
+  itera sobre os vértices e arestas
+end note
+
+loop Para cada aresta avaliada no grafo
+  Grafo -> Aresta: getPeso(criterio)
+  activate Aresta
+  Aresta --> Grafo: peso (Double)
+  deactivate Aresta
+end
+
+create Resultado
+Grafo -> Resultado **: new ResultadoRota()
+activate Resultado
+Resultado --> Grafo: instância criada
+deactivate Resultado
 
 Grafo --> UI: retorna ResultadoRota
 deactivate Grafo
 
-UI --> User: Exibir rota e métricas (exibirResumo())
+UI --> User: Exibir rota, mapa e métricas (exibirResumo())
 deactivate UI
 
 @enduml

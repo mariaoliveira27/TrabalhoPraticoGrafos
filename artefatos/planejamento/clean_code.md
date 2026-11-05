@@ -34,6 +34,6 @@ Clean Code será aplicado por meio de organização simples, responsabilidades c
 
 Todos percorrerão o fluxo completo. Cada autor e seu revisor deverão explicar as estruturas utilizadas, as entradas e saídas, as condições, o relaxamento das arestas, as operações da fila e a reconstrução do caminho.
 
-As duplas serão 1 e 2, 3 e 4, 5 e 6. Os responsáveis pelos algoritmos também deverão justificar correção, complexidade e validade das heurísticas. Um ensaio coletivo usará trechos escolhidos pelos colegas.
+As duplas serão 1 e 2, 3 e 4, 5 e 6. Os responsáveis pela busca deverão justificar a correção e a complexidade de Dijkstra. Um ensaio coletivo usará trechos escolhidos pelos colegas.
 
 Quando houver código, poderá ser produzido um material didático complementar com explicações dos blocos mais difíceis. O relatório não precisa transcrever todo o código.

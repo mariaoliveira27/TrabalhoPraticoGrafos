@@ -17,7 +17,7 @@ Cenários de teste necessários:
 - Pesos negativos ou não finitos e velocidade não positiva (devem disparar exceções).
 - Integração ponta a ponta: leitura, construção do grafo e busca sem acionar a interface visual.
 
-Cada aresta devolvida no caminho deverá existir, respeitar a direção de tráfego e somar exatamente o custo informado. Dijkstra e A* deverão concordar no custo ótimo com tolerância numérica de ponto flutuante, mesmo quando retornarem caminhos alternativos em empates.
+Cada aresta devolvida no caminho deverá existir, respeitar a direção de tráfego e somar exatamente o custo informado. A correção de Dijkstra será conferida em grafos pequenos com solução ótima calculada manualmente, cobrindo também empates e caminhos alternativos de mesmo custo.
 
 ## Avaliação de Desempenho (Benchmarks)
 
@@ -26,7 +26,7 @@ Manter a avaliação experimental separada dos testes unitários de correção. 
 Protocolo planejado:
 
 - Usar o snapshot fixo da malha viária do Coração Eucarístico e 100 pares origem–destino selecionados de forma determinística e reproduzível.
-- Comparar Dijkstra vs A* com os mesmos pares, sob os 3 critérios (distância, tempo e custo).
+- Medir Dijkstra com os mesmos pares, sob os 3 critérios (distância, tempo e custo), registrando o custo ótimo e o número de nós expandidos.
 - Executar aquecimento de cache e 20 repetições para cada consulta.
 - Cronometrar unicamente o tempo de busca e reconstrução da rota (`time.perf_counter`), isolado de leitura de disco, renderização do mapa ou renderização no Streamlit.
 - Métricas registradas: tamanho do grafo (|V| e |E|), custo total obtido, quantidade de nós expandidos/visitados, tempo mediano, desvio padrão e especificações do hardware de teste.

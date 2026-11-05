@@ -6,14 +6,14 @@ A organização foi simplificada para cinco arquivos futuros. Nesta etapa existe
 | --- | --- | --- |
 | 1 | `mapa.py`, coleta, validação dos dados viários e 10 pontos de interesse em `codigo/dados` | Origem e preparação dos dados; revisa o integrante 2 |
 | 2 | Classes e cálculos de `grafo.py`; modelagem dos pesos (distância, tempo, custo) e apoio às regras viárias | Modelagem, pesos e UML; revisa o integrante 1 |
-| 3 | Função Dijkstra e reconstrução do caminho em `rotas.py` (critérios: distância, tempo e custo) | Correção, complexidade e testes de Dijkstra; revisa o integrante 4 |
-| 4 | Função A* e suas heurísticas admissíveis em `rotas.py` (distância, tempo e custo) | Correção, complexidade e testes de A*; revisa o integrante 3 |
+| 3 | Implementação de Dijkstra e reconstrução do caminho em `rotas.py` (critérios: distância, tempo e custo) | Correção e complexidade de Dijkstra; recebe revisão do integrante 4 |
+| 4 | Apoio à especificação de Dijkstra e revisão da implementação em `rotas.py` | Revisão dos casos de teste e da explicação de Dijkstra; revisa o integrante 3 |
 | 5 | `app.py` com **Streamlit + Folium** (`streamlit-folium`), mapa interativo e apresentação das métricas | Telas, slides e organização da gravação; revisa o integrante 6 |
 | 6 | Organização de `test_rotas.py`, testes de borda, integração e benchmarks de desempenho empírico | Resultados, montagem do relatório e pacote final; revisa o integrante 5 |
 
 ## Como trabalhar nos arquivos compartilhados
 
-Os integrantes 3 e 4 serão responsáveis por funções diferentes de `rotas.py`. Integrar primeiro Dijkstra e seu contrato de resultado; depois acrescentar A*. Combinar os trechos antes de editar simultaneamente e revisar as alterações pelo Git.
+Os integrantes 3 e 4 trabalharão na mesma busca de Dijkstra, com responsabilidades complementares de implementação e revisão. O projeto utilizará somente esse algoritmo. Combinar alterações antes de editar simultaneamente e revisar pelo Git.
 
 Cada autor fornecerá testes da própria contribuição. O integrante 6 organizará esses casos em `test_rotas.py` e coordenará os testes de integração. A medição de desempenho será planejada separadamente dos testes de correção.
 
@@ -31,7 +31,7 @@ Cada autor fornecerá testes da própria contribuição. O integrante 6 organiza
 1. Definir o modelo e o resultado das buscas (suportando distância, tempo e custo financeiro).
 2. Ler um recorte viário do Coração Eucarístico e montar o grafo próprio.
 3. Implementar Dijkstra e ligar o fluxo à primeira tela com Streamlit + Folium.
-4. Acrescentar A*, pontos reais e comparação dos 3 critérios.
+4. Integrar os pontos de interesse e validar Dijkstra nos 3 critérios.
 5. Executar testes e medições de benchmark, registrando apenas resultados realmente produzidos.
 6. Revisar código, relatório oficial SBC e demonstrações, ensaiando a explicação linha a linha.
 

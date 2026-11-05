@@ -10,7 +10,7 @@ Reserva os arquivos do artigo científico/técnico final. Nenhum arquivo LaTeX o
 - Produzir entre 12 e 15 páginas.
 - Apresentar contexto, definição do problema (Otimização de Rotas Urbanas - Tema 2), dados viários do Coração Eucarístico (OSM), modelagem em grafos e diagramas UML (Classes e Sequência).
 - Detalhar os 3 critérios de otimização suportados: distância (m), tempo (s) e custo financeiro estimado (R$).
-- Explicar a implementação dos algoritmos (Dijkstra e A* com heurística admissível), provas de correção, complexidade computacional assintótica, suíte de testes de borda e benchmarks de desempenho empírico.
+- Explicar a implementação do algoritmo de Dijkstra, sua prova de correção, complexidade computacional assintótica, suíte de testes de borda e benchmarks de desempenho empírico.
 - Incluir telas da interface gráfica interativa desenvolvida em Streamlit + Folium e gráficos/tabelas de resultados realmente produzidos.
 - Registrar detalhadamente as responsabilidades e contribuições individuais de cada um dos 6 integrantes.
 

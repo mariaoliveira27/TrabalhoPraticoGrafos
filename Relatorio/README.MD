@@ -4,6 +4,9 @@
 
 Reserva os arquivos do artigo científico/técnico final. Nenhum arquivo LaTeX ou PDF foi criado nesta etapa.
 
+## Link do artigo
+[SBC Conferences Template](https://www.overleaf.com/project/6af7446b9a7ef2d09766f792/share#d329842e61bab785fa07b90cd45d631b883645076401136e)
+
 ## Requisitos do plano (Template SBC)
 
 - Usar o template oficial SBC em LaTeX (disponível no Overleaf: [SBC Conferences Template](https://www.overleaf.com/latex/templates/sbc-conferences-template/blbxwjwzdngr)).

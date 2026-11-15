@@ -1,0 +1,134 @@
+[
+  {
+    "id": "puc_minas_coreu",
+    "nome": "PUC Minas - Coração Eucarístico",
+    "categoria": "educacao",
+    "coordenadas": [
+      -19.9229,
+      -43.9926
+    ],
+    "endereco": "Rua Dom José Gaspar, 500 - Coração Eucarístico",
+    "no_viario_associado": "no_puc_coreu"
+  },
+  {
+    "id": "praca_da_liberdade",
+    "nome": "Praça da Liberdade (Circuito Cultural)",
+    "categoria": "cultura",
+    "coordenadas": [
+      -19.932,
+      -43.9378
+    ],
+    "endereco": "Praça da Liberdade, s/n - Savassi / Funcionários",
+    "no_viario_associado": "no_praca_liberdade"
+  },
+  {
+    "id": "mercado_central",
+    "nome": "Mercado Central de Belo Horizonte",
+    "categoria": "turismo",
+    "coordenadas": [
+      -19.925,
+      -43.9415
+    ],
+    "endereco": "Av. Augusto de Lima, 744 - Centro",
+    "no_viario_associado": "no_mercado_central"
+  },
+  {
+    "id": "igreja_da_pampulha",
+    "nome": "Igreja São Francisco de Assis (Pampulha)",
+    "categoria": "patrimonio",
+    "coordenadas": [
+      -19.8584,
+      -43.9789
+    ],
+    "endereco": "Av. Otacílio Negrão de Lima, 3000 - Pampulha",
+    "no_viario_associado": "no_igreja_pampulha"
+  },
+  {
+    "id": "estadio_mineirao",
+    "nome": "Estádio Mineirão (Gigante da Pampulha)",
+    "categoria": "esporte",
+    "coordenadas": [
+      -19.8659,
+      -43.9711
+    ],
+    "endereco": "Av. Antônio Abrahão Caram, 1001 - São José / Pampulha",
+    "no_viario_associado": "no_estadio_mineirao"
+  },
+  {
+    "id": "parque_municipal",
+    "nome": "Parque Municipal Américo Renné Giannetti",
+    "categoria": "lazer",
+    "coordenadas": [
+      -19.9234,
+      -43.9332
+    ],
+    "endereco": "Av. Afonso Pena, 1377 - Centro",
+    "no_viario_associado": "no_parque_municipal"
+  },
+  {
+    "id": "praca_do_papa",
+    "nome": "Praça do Papa (Praça Israel Pinheiro)",
+    "categoria": "turismo",
+    "coordenadas": [
+      -19.956,
+      -43.915
+    ],
+    "endereco": "Av. Agulhas Negras, s/n - Mangabeiras",
+    "no_viario_associado": "no_praca_do_papa"
+  },
+  {
+    "id": "mirante_mangabeiras",
+    "nome": "Mirante do Mangabeiras",
+    "categoria": "vista_panoramica",
+    "coordenadas": [
+      -19.9547,
+      -43.9038
+    ],
+    "endereco": "Rua Pedro José Pardo, 1000 - Mangabeiras",
+    "no_viario_associado": "no_mirante_mangabeiras"
+  },
+  {
+    "id": "praca_da_estacao",
+    "nome": "Praça da Estação (Museu de Artes e Ofícios)",
+    "categoria": "cultura",
+    "coordenadas": [
+      -19.917,
+      -43.9348
+    ],
+    "endereco": "Praça Rui Barbosa, s/n - Centro",
+    "no_viario_associado": "no_praca_da_estacao"
+  },
+  {
+    "id": "rodoviaria_bh",
+    "nome": "Terminal Rodoviário de Belo Horizonte (TERGIP)",
+    "categoria": "transporte",
+    "coordenadas": [
+      -19.9142,
+      -43.9422
+    ],
+    "endereco": "Praça Rio Branco, 100 - Centro",
+    "no_viario_associado": "no_rodoviaria_bh"
+  },
+  {
+    "id": "museu_abilio_barreto",
+    "nome": "Museu Histórico Abílio Barreto",
+    "categoria": "historia",
+    "coordenadas": [
+      -19.9428,
+      -43.9482
+    ],
+    "endereco": "Rua Bernardo Mascarenhas, 370 - Cidade Jardim",
+    "no_viario_associado": "no_abilio_barreto"
+  },
+  {
+    "id": "zoologico_bh",
+    "nome": "Zoológico de Belo Horizonte (Fundação Zoo-Botânica)",
+    "categoria": "lazer",
+    "coordenadas": [
+      -19.856,
+      -44.004
+    ],
+    "endereco": "Av. Otacílio Negrão de Lima, 8000 - Pampulha",
+    "no_viario_associado": "no_zoologico_bh"
+  }
+]

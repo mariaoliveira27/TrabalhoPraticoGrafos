@@ -1,0 +1,222 @@
+{
+  "metadados": {
+    "regiao": "Coração Eucarístico, Belo Horizonte - MG",
+    "fonte": "OpenStreetMap Snapshot",
+    "licenca": "Open Database License (ODbL)",
+    "data_extracao": "2026-11-15T00:00:00Z",
+    "bounding_box": {
+      "min_lat": -19.9320,
+      "max_lat": -19.9180,
+      "min_lon": -43.9960,
+      "max_lon": -43.9750
+    }
+  },
+  "vertices": [
+    {
+      "id": "no_dom_jose_gaspar_norte",
+      "nome": "Cruzamento R. Dom José Gaspar x R. Carangola",
+      "latitude": -19.9208,
+      "longitude": -43.9940
+    },
+    {
+      "id": "no_dom_jose_gaspar_puc",
+      "nome": "R. Dom José Gaspar (Acesso Principal PUC Minas)",
+      "latitude": -19.9229,
+      "longitude": -43.9926
+    },
+    {
+      "id": "no_dom_jose_gaspar_centro",
+      "nome": "Cruzamento R. Dom José Gaspar x R. Padre Pedro Evangelista",
+      "latitude": -19.9233,
+      "longitude": -43.9905
+    },
+    {
+      "id": "no_dom_jose_gaspar_sul",
+      "nome": "R. Dom José Gaspar x R. Dom Joaquim Silvério",
+      "latitude": -19.9238,
+      "longitude": -43.9918
+    },
+    {
+      "id": "no_praca_federacao",
+      "nome": "Praça da Federação (Rotatória)",
+      "latitude": -19.9242,
+      "longitude": -43.9930
+    },
+    {
+      "id": "no_padre_pedro_esportes",
+      "nome": "R. Padre Pedro Evangelista (Acesso Esportes PUC)",
+      "latitude": -19.9254,
+      "longitude": -43.9912
+    },
+    {
+      "id": "no_coreu_jesus_norte",
+      "nome": "R. Coração Eucarístico de Jesus x R. Dom José Gaspar",
+      "latitude": -19.9226,
+      "longitude": -43.9914
+    },
+    {
+      "id": "no_coreu_jesus_centro",
+      "nome": "R. Coração Eucarístico de Jesus x R. Dom Joaquim Silvério",
+      "latitude": -19.9244,
+      "longitude": -43.9899
+    },
+    {
+      "id": "no_coreu_jesus_leste",
+      "nome": "R. Coração Eucarístico de Jesus (Comércio / EPA)",
+      "latitude": -19.9221,
+      "longitude": -43.9898
+    },
+    {
+      "id": "no_dom_joaquim_centro",
+      "nome": "R. Dom Joaquim Silvério (Comércio Central)",
+      "latitude": -19.9235,
+      "longitude": -43.9912
+    },
+    {
+      "id": "no_dom_joaquim_sul",
+      "nome": "R. Dom Joaquim Silvério x Av. 31 de Março",
+      "latitude": -19.9248,
+      "longitude": -43.9902
+    },
+    {
+      "id": "no_av31_marco_norte",
+      "nome": "Av. Presidente Juscelino Kubitschek (31 de Março) - Viaduto",
+      "latitude": -19.9240,
+      "longitude": -43.9860
+    },
+    {
+      "id": "no_av31_marco_sul",
+      "nome": "Av. Presidente Juscelino Kubitschek - Acesso Gameleira",
+      "latitude": -19.9270,
+      "longitude": -43.9850
+    },
+    {
+      "id": "no_metro_gameleira",
+      "nome": "Acesso Estação Metrô Gameleira / Expominas",
+      "latitude": -19.9298,
+      "longitude": -43.9855
+    }
+  ],
+  "arestas": [
+    {
+      "id": "e_djg_norte_puc",
+      "origem": "no_dom_jose_gaspar_norte",
+      "destino": "no_dom_jose_gaspar_puc",
+      "nome_rua": "Rua Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": false
+    },
+    {
+      "id": "e_djg_puc_coreu_norte",
+      "origem": "no_dom_jose_gaspar_puc",
+      "destino": "no_coreu_jesus_norte",
+      "nome_rua": "Rua Dom José Gaspar",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    },
+    {
+      "id": "e_djg_puc_praca",
+      "origem": "no_dom_jose_gaspar_puc",
+      "destino": "no_praca_federacao",
+      "nome_rua": "Acesso Praça da Federação",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    },
+    {
+      "id": "e_praca_sul",
+      "origem": "no_praca_federacao",
+      "destino": "no_dom_jose_gaspar_sul",
+      "nome_rua": "Rua Dom José Gaspar",
+      "velocidade_kmh": 30.0,
+      "oneway": true
+    },
+    {
+      "id": "e_sul_esportes",
+      "origem": "no_dom_jose_gaspar_sul",
+      "destino": "no_padre_pedro_esportes",
+      "nome_rua": "Rua Padre Pedro Evangelista",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    },
+    {
+      "id": "e_esportes_dom_joaquim_sul",
+      "origem": "no_padre_pedro_esportes",
+      "destino": "no_dom_joaquim_sul",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    },
+    {
+      "id": "e_coreu_norte_leste",
+      "origem": "no_coreu_jesus_norte",
+      "destino": "no_coreu_jesus_leste",
+      "nome_rua": "Rua Coração Eucarístico de Jesus",
+      "velocidade_kmh": 40.0,
+      "oneway": true
+    },
+    {
+      "id": "e_coreu_leste_djg_centro",
+      "origem": "no_coreu_jesus_leste",
+      "destino": "no_dom_jose_gaspar_centro",
+      "nome_rua": "Rua Coração Eucarístico de Jesus",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    },
+    {
+      "id": "e_djg_centro_coreu_centro",
+      "origem": "no_dom_jose_gaspar_centro",
+      "destino": "no_coreu_jesus_centro",
+      "nome_rua": "Travessa Coração Eucarístico",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    },
+    {
+      "id": "e_coreu_centro_dom_joaquim_centro",
+      "origem": "no_coreu_jesus_centro",
+      "destino": "no_dom_joaquim_centro",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    },
+    {
+      "id": "e_dom_joaquim_centro_sul",
+      "origem": "no_dom_joaquim_centro",
+      "destino": "no_dom_joaquim_sul",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 30.0,
+      "oneway": true
+    },
+    {
+      "id": "e_dom_joaquim_sul_av31",
+      "origem": "no_dom_joaquim_sul",
+      "destino": "no_av31_marco_sul",
+      "nome_rua": "Avenida 31 de Março - Alça de Acesso",
+      "velocidade_kmh": 60.0,
+      "oneway": false
+    },
+    {
+      "id": "e_av31_norte_sul",
+      "origem": "no_av31_marco_norte",
+      "destino": "no_av31_marco_sul",
+      "nome_rua": "Avenida Presidente Juscelino Kubitschek",
+      "velocidade_kmh": 60.0,
+      "oneway": true
+    },
+    {
+      "id": "e_coreu_leste_av31_norte",
+      "origem": "no_coreu_jesus_leste",
+      "destino": "no_av31_marco_norte",
+      "nome_rua": "Rua Conde Pereira Carneiro",
+      "velocidade_kmh": 40.0,
+      "oneway": false
+    },
+    {
+      "id": "e_av31_sul_metro",
+      "origem": "no_av31_marco_sul",
+      "destino": "no_metro_gameleira",
+      "nome_rua": "Acesso Terminal Metrô Gameleira",
+      "velocidade_kmh": 30.0,
+      "oneway": false
+    }
+  ]
+}

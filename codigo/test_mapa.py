@@ -213,3 +213,210 @@ def test_geocodificar_endereco_vazio():
     res = geocodificar_endereco("", timeout_segundos=0.1)
     assert res is None
 
+
+
+# ---------------------------------------------------------------------------
+# Testes do modelo do grafo (grafo.py) — Issue 04
+# ---------------------------------------------------------------------------
+
+import math as _math
+
+from grafo import (
+    Aresta,
+    Grafo,
+    ResultadoRota,
+    CRITERIO_CUSTO,
+    CRITERIO_DISTANCIA,
+    CRITERIO_TEMPO,
+    SITUACAO_ENCONTRADA,
+    SITUACAO_INALCANCAVEL,
+    SITUACAO_INVALIDA,
+    normalizarCriterio,
+)
+
+
+def _vertices_abc():
+    return (
+        Vertice("A", -19.9200, -43.9900),
+        Vertice("B", -19.9210, -43.9910),
+        Vertice("C", -19.9220, -43.9920),
+    )
+
+
+def _aresta(id_aresta, origem, destino, dist=100.0, vel=30.0, tempo=12.0, custo=0.058):
+    return Aresta(id_aresta, origem, destino, dist, vel, tempo, custo)
+
+
+@pytest.mark.parametrize("lat, lon", [
+    (91.0, 0.0), (-91.0, 0.0), (0.0, 181.0), (0.0, -181.0),
+    (float("nan"), 0.0), (0.0, float("inf")), ("abc", 0.0),
+])
+def test_vertice_coordenadas_invalidas(lat, lon):
+    with pytest.raises(ValueError):
+        Vertice("X", lat, lon)
+
+
+def test_vertice_id_vazio():
+    with pytest.raises(ValueError):
+        Vertice("  ", 0.0, 0.0)
+
+
+def test_aresta_get_peso_por_criterio():
+    a, b, _ = _vertices_abc()
+    aresta = _aresta("e1", a, b, dist=150.0, tempo=18.0, custo=0.087)
+    assert aresta.getPeso(CRITERIO_DISTANCIA) == 150.0
+    assert aresta.getPeso(CRITERIO_TEMPO) == 18.0
+    assert aresta.getPeso(CRITERIO_CUSTO) == 0.087
+    assert aresta.getPeso("  Tempo ") == 18.0
+
+
+@pytest.mark.parametrize("criterio", ["velocidade", "", None, 3])
+def test_aresta_criterio_invalido(criterio):
+    a, b, _ = _vertices_abc()
+    with pytest.raises(ValueError):
+        _aresta("e1", a, b).getPeso(criterio)
+
+
+@pytest.mark.parametrize("campo, valor", [
+    ("dist", -1.0), ("dist", float("nan")), ("dist", float("inf")),
+    ("vel", 0.0), ("vel", -10.0), ("vel", float("nan")),
+    ("tempo", -0.1), ("tempo", float("inf")),
+    ("custo", -0.01), ("custo", float("nan")),
+])
+def test_aresta_pesos_invalidos(campo, valor):
+    a, b, _ = _vertices_abc()
+    with pytest.raises(ValueError):
+        _aresta("e1", a, b, **{campo: valor})
+
+
+def test_aresta_peso_zero_permitido():
+    a, b, _ = _vertices_abc()
+    aresta = _aresta("e1", a, b, dist=0.0, tempo=0.0, custo=0.0)
+    assert aresta.getPeso(CRITERIO_DISTANCIA) == 0.0
+
+
+def test_aresta_exige_vertices():
+    a, _, _ = _vertices_abc()
+    with pytest.raises(TypeError):
+        _aresta("e1", a, "B")
+
+
+def test_grafo_dirigido_mao_unica():
+    a, b, _ = _vertices_abc()
+    grafo = Grafo()
+    grafo.adicionarAresta(_aresta("e1", a, b))
+    assert [x.destino.id for x in grafo.getAdjacencias("A")] == ["B"]
+    assert grafo.getAdjacencias("B") == []
+    assert grafo.quantidade_vertices() == 2
+    assert grafo.quantidade_arestas() == 1
+
+
+def test_grafo_arestas_paralelas_identificaveis():
+    a, b, _ = _vertices_abc()
+    grafo = Grafo()
+    grafo.adicionarAresta(_aresta("curta", a, b, dist=100.0))
+    grafo.adicionarAresta(_aresta("longa", a, b, dist=300.0))
+    paralelas = grafo.getArestasEntre("A", "B")
+    assert {x.id for x in paralelas} == {"curta", "longa"}
+    assert grafo.getAresta("longa").distanciaMetros == 300.0
+    assert grafo.quantidade_arestas() == 2
+
+
+def test_grafo_rejeita_id_de_aresta_repetido():
+    a, b, c = _vertices_abc()
+    grafo = Grafo()
+    grafo.adicionarAresta(_aresta("e1", a, b))
+    with pytest.raises(ValueError):
+        grafo.adicionarAresta(_aresta("e1", b, c))
+    assert grafo.quantidade_arestas() == 1
+
+
+def test_grafo_vertice_repetido():
+    grafo = Grafo()
+    grafo.adicionarVertice(Vertice("A", -19.92, -43.99))
+    grafo.adicionarVertice(Vertice("A", -19.92, -43.99))  # mesmo vértice: sem efeito
+    assert grafo.quantidade_vertices() == 1
+    with pytest.raises(ValueError):
+        grafo.adicionarVertice(Vertice("A", -19.93, -43.99))
+
+
+def test_grafo_vertice_inexistente():
+    grafo = Grafo()
+    assert grafo.getVertice("Z") is None
+    assert not grafo.existeVertice("Z")
+    assert grafo.getAdjacencias("Z") == []
+
+
+def test_resultado_a_partir_do_caminho_soma_pesos():
+    a, b, c = _vertices_abc()
+    caminho = [
+        _aresta("e1", a, b, dist=100.0, tempo=12.0, custo=0.058),
+        _aresta("e2", b, c, dist=250.0, tempo=22.5, custo=0.145),
+    ]
+    resultado = ResultadoRota.aPartirDoCaminho(caminho, nosExpandidos=3)
+    assert resultado.situacao == SITUACAO_ENCONTRADA
+    assert resultado.foiEncontrada()
+    assert resultado.distanciaTotalMetros == 350.0
+    assert resultado.tempoTotalSegundos == 34.5
+    assert _math.isclose(resultado.custoTotalReais, 0.203)
+    assert resultado.getTotal(CRITERIO_DISTANCIA) == 350.0
+    assert resultado.getDistanciaKm() == 0.35
+    assert resultado.getTempoMinutos() == 34.5 / 60
+    assert [v.id for v in resultado.getVerticesCaminho()] == ["A", "B", "C"]
+    assert resultado.nosExpandidos == 3
+
+
+def test_resultado_origem_igual_destino():
+    resultado = ResultadoRota.aPartirDoCaminho([], nosExpandidos=1)
+    assert resultado.foiEncontrada()
+    assert resultado.distanciaTotalMetros == 0.0
+    assert resultado.tempoTotalSegundos == 0.0
+    assert resultado.custoTotalReais == 0.0
+    assert resultado.getVerticesCaminho() == []
+
+
+def test_resultado_inalcancavel_e_invalida():
+    inalcancavel = ResultadoRota.inalcancavel(nosExpandidos=4)
+    invalida = ResultadoRota.invalida()
+    assert inalcancavel.situacao == SITUACAO_INALCANCAVEL
+    assert invalida.situacao == SITUACAO_INVALIDA
+    for resultado in (inalcancavel, invalida):
+        assert not resultado.foiEncontrada()
+        assert resultado.caminho == []
+        assert resultado.distanciaTotalMetros is None
+        assert resultado.getDistanciaKm() is None
+        assert resultado.getTempoMinutos() is None
+    assert inalcancavel.nosExpandidos == 4
+
+
+def test_resultado_rejeita_estados_incoerentes():
+    a, b, c = _vertices_abc()
+    with pytest.raises(ValueError):
+        ResultadoRota("achou", [])
+    with pytest.raises(ValueError):
+        ResultadoRota(SITUACAO_ENCONTRADA, [], 1.0, None, 1.0)
+    with pytest.raises(ValueError):
+        ResultadoRota(SITUACAO_INALCANCAVEL, [_aresta("e1", a, b)])
+    with pytest.raises(ValueError):
+        ResultadoRota(SITUACAO_INVALIDA, [], distanciaTotalMetros=10.0)
+    with pytest.raises(ValueError):  # caminho descontínuo: A->B seguido de A->C
+        ResultadoRota.aPartirDoCaminho([_aresta("e1", a, b), _aresta("e2", a, c)])
+    with pytest.raises(ValueError):
+        ResultadoRota.inalcancavel(nosExpandidos=-1)
+
+
+def test_resultado_repr():
+    texto = repr(ResultadoRota.aPartirDoCaminho([]))
+    assert "situacao='encontrada'" in texto
+    assert "custo=R$0.0" in texto
+
+
+def test_construir_grafo_com_dados_reais():
+    """O snapshot do projeto deve montar um grafo válido no novo modelo."""
+    grafo = construir_grafo(carregar_mapa(ARQUIVO_MAPA))
+    assert grafo.quantidade_vertices() > 0
+    assert grafo.quantidade_arestas() > 0
+    for aresta in grafo.getArestas():
+        for criterio in (CRITERIO_DISTANCIA, CRITERIO_TEMPO, CRITERIO_CUSTO):
+            peso = aresta.getPeso(criterio)
+            assert _math.isfinite(peso) and peso >= 0

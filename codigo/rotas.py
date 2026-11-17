@@ -42,6 +42,16 @@ Complexidade (V = vértices, E = arestas):
     Bellman-Ford: O(V · E) no pior caso (V - 1 iterações, cada uma examinando
         até E arestas); o término antecipado costuma parar bem antes.
 
+Exemplo:
+    >>> from grafo import Aresta, Grafo, Vertice
+    >>> praca = Vertice("praca", -19.9240, -43.9930)
+    >>> puc = Vertice("puc", -19.9230, -43.9920)
+    >>> grafo = Grafo()
+    >>> grafo.adicionarAresta(Aresta("rua1", praca, puc, 150.0, 30.0, 18.0, 0.087))
+    >>> calcularRotaDijkstra(grafo, "praca", "puc", "distancia").distanciaTotalMetros
+    150.0
+    >>> calcularRotaDijkstra(grafo, "praca", "puc", "velocidade").situacao
+    'invalida'
 """
 
 import heapq
@@ -233,3 +243,155 @@ def _montarResultado(
     # caminho, então os totais informados batem com a soma das arestas
     caminho = _reconstruirCaminho(predecessorDoVertice, origem, destino)
     return ResultadoRota.aPartirDoCaminho(caminho, nosExpandidos)
+
+
+# ---------------------------------------------------------------------------
+# Método de Dijkstra (slides "Caminho Mínimo (1)")
+# ---------------------------------------------------------------------------
+
+
+def calcularRotaDijkstra(
+    grafo: Grafo,
+    origem: str,
+    destino: str,
+    criterio: str,
+) -> ResultadoRota:
+    """
+    Calcula a rota de menor custo de origem até destino pelo Método de Dijkstra.
+
+    Exige pesos não negativos, o que a classe Aresta já garante. A busca para
+    assim que o destino é declarado maduro.
+
+    Parâmetros:
+        grafo: grafo dirigido já montado (por exemplo, por mapa.construir_grafo).
+        origem: id do vértice de partida.
+        destino: id do vértice de chegada.
+        criterio: 'distancia' (m), 'tempo' (s) ou 'custo' (R$). Aceita maiúsculas
+            e espaços extras, mas não acentos ('Distância' é inválido).
+
+    Retorna:
+        ResultadoRota com situação 'encontrada' (caminho e totais),
+        'inalcancavel' ou 'invalida'. nosExpandidos = vértices declarados maduros.
+
+    Exemplo:
+        >>> from grafo import Aresta, Grafo, Vertice
+        >>> praca = Vertice("praca", -19.9240, -43.9930)
+        >>> puc = Vertice("puc", -19.9230, -43.9920)
+        >>> grafo = Grafo()
+        >>> grafo.adicionarAresta(Aresta("rua1", praca, puc, 150.0, 30.0, 18.0, 0.087))
+        >>> resultado = calcularRotaDijkstra(grafo, "praca", "puc", "tempo")
+        >>> resultado.tempoTotalSegundos, resultado.nosExpandidos
+        (18.0, 2)
+    """
+    # 1) valida o pedido; inválido ou origem = destino já sai aqui
+    criterioNormalizado = _tentarNormalizarCriterio(criterio)
+    resultadoAntecipado = _verificarSolicitacao(grafo, origem, destino, criterioNormalizado)
+    if resultadoAntecipado is not None:
+        return resultadoAntecipado
+    # 2) dist[] infinito (origem = 0) e pred[] indefinido
+    distanciaAteOVertice, predecessorDoVertice = _inicializarEstimativas(
+        _listarIdsDosVertices(grafo), origem
+    )
+    # 3) laço principal dos slides: seleciona o imaturo, relaxa, declara maduro
+    nosExpandidos = _executarLacoDeDijkstra(
+        grafo, origem, destino, criterioNormalizado, distanciaAteOVertice, predecessorDoVertice
+    )
+    # 4) reconstrói o caminho por pred[] e monta o ResultadoRota
+    return _montarResultado(
+        distanciaAteOVertice, predecessorDoVertice, origem, destino, nosExpandidos
+    )
+
+
+def _executarLacoDeDijkstra(
+    grafo: Grafo,
+    origem: str,
+    destino: str,
+    criterio: str,
+    distanciaAteOVertice: DistanciasPorVertice,
+    predecessorDoVertice: PredecessoresPorVertice,
+) -> int:
+    """
+    Laço principal do Dijkstra; atualiza dist[] e pred[] no próprio dicionário.
+
+    Devolve nosExpandidos: quantos vértices foram declarados maduros.
+    """
+    # maduros: vértices cuja distância já é definitiva; a fila guarda candidatos
+    verticesMaduros: Set[str] = set()
+    filaDePrioridade = _FilaDePrioridade()
+    # no início só a origem tem estimativa finita, então só ela entra na fila
+    filaDePrioridade.inserir(distanciaAteOVertice[origem], origem)
+    # repete enquanto houver candidato; fila vazia = nada mais é alcançável
+    while not filaDePrioridade.estaVazia():
+        # seleciona o imaturo v que minimiza dist (a menor entrada da fila);
+        # entradas velhas, deixadas pela remoção preguiçosa, são puladas
+        distanciaDaEntrada, verticeAtual = filaDePrioridade.retirarMenor()
+        if _entradaEstaDesatualizada(
+            distanciaDaEntrada, verticeAtual, verticesMaduros, distanciaAteOVertice
+        ):
+            continue
+        # v é declarado maduro. Nos slides isso vem depois de examinar as arestas
+        # de v; fazer antes dá no mesmo com pesos não negativos (nenhuma aresta de
+        # v melhora dist[v]) e permite parar no destino sem examinar as dele
+        verticesMaduros.add(verticeAtual)
+        # o destino amadureceu: seu caminho mínimo já é conhecido, pode parar
+        if verticeAtual == destino:
+            break
+        # examina cada aresta (v, w); se estava tensa e foi relaxada, w entra
+        # (de novo) na fila com a nova estimativa
+        for arestaDeSaida in grafo.getAdjacencias(verticeAtual):
+            if _tentarRelaxarAresta(
+                arestaDeSaida, criterio, distanciaAteOVertice, predecessorDoVertice
+            ):
+                verticeVizinho = arestaDeSaida.destino.id
+                filaDePrioridade.inserir(distanciaAteOVertice[verticeVizinho], verticeVizinho)
+    return len(verticesMaduros)
+
+
+def _entradaEstaDesatualizada(
+    distanciaDaEntrada: float,
+    verticeAtual: str,
+    verticesMaduros: Set[str],
+    distanciaAteOVertice: DistanciasPorVertice,
+) -> bool:
+    """Indica se uma entrada retirada da fila deve ser ignorada (remoção preguiçosa)."""
+    # remoção preguiçosa: o heapq não sabe "diminuir a chave" de uma entrada.
+    # Quando dist[w] melhora, w é inserido de novo e a entrada antiga continua
+    # na fila. Ela é ignorada ao sair se o vértice já está maduro...
+    if verticeAtual in verticesMaduros:
+        return True
+    # ...ou se a distância da entrada é maior que dist atual (estimativa velha)
+    return distanciaDaEntrada > distanciaAteOVertice[verticeAtual]
+
+
+class _FilaDePrioridade:
+    """
+    Fila de prioridade mínima (heap) dos vértices candidatos a maduro.
+
+    Cada entrada é (distância estimada, contador de desempate, id do vértice).
+    O contador cresce a cada inserção: com distâncias iguais sai primeiro quem
+    entrou primeiro, e o heapq nunca precisa comparar os ids entre si.
+    """
+
+    def __init__(self) -> None:
+        # lista organizada como heap pelo heapq; menor entrada na posição 0
+        self._entradas: List[EntradaDaFila] = []
+        self._proximoContadorDeDesempate: int = 0
+
+    def inserir(self, distanciaEstimada: float, idDoVertice: str) -> None:
+        """Coloca o vértice na fila com a distância estimada atual."""
+        # heappush mantém a propriedade de heap em O(log n); depois avança o
+        # contador para a próxima inserção ter desempate maior
+        entrada: EntradaDaFila = (distanciaEstimada, self._proximoContadorDeDesempate, idDoVertice)
+        heapq.heappush(self._entradas, entrada)
+        self._proximoContadorDeDesempate += 1
+
+    def retirarMenor(self) -> Tuple[float, str]:
+        """Remove a entrada de menor distância e devolve (distância, id do vértice)."""
+        # heappop tira a menor entrada em O(log n); o contador só servia para ordenar
+        distanciaDaEntrada, _contadorDeDesempate, idDoVertice = heapq.heappop(self._entradas)
+        return distanciaDaEntrada, idDoVertice
+
+    def estaVazia(self) -> bool:
+        """Indica se não há mais entradas na fila."""
+        # lista vazia: nenhum candidato restante
+        return len(self._entradas) == 0

@@ -50,6 +50,8 @@ Exemplo:
     >>> grafo.adicionarAresta(Aresta("rua1", praca, puc, 150.0, 30.0, 18.0, 0.087))
     >>> calcularRotaDijkstra(grafo, "praca", "puc", "distancia").distanciaTotalMetros
     150.0
+    >>> calcularRotaBellmanFord(grafo, "puc", "praca", "distancia").situacao
+    'inalcancavel'
     >>> calcularRotaDijkstra(grafo, "praca", "puc", "velocidade").situacao
     'invalida'
 """
@@ -395,3 +397,154 @@ class _FilaDePrioridade:
         """Indica se não há mais entradas na fila."""
         # lista vazia: nenhum candidato restante
         return len(self._entradas) == 0
+
+
+# ---------------------------------------------------------------------------
+# Algoritmo de Bellman-Ford (slides "Caminho Mínimo (2)")
+# ---------------------------------------------------------------------------
+
+
+def calcularRotaBellmanFord(
+    grafo: Grafo,
+    origem: str,
+    destino: str,
+    criterio: str,
+) -> ResultadoRota:
+    """
+    Calcula a rota de menor custo de origem até destino pelo algoritmo de Bellman-Ford.
+
+    Faz até |V| - 1 iterações relaxando todas as arestas tensas, com término
+    antecipado quando uma iteração não muda nada. Funciona também com pesos
+    negativos e detecta ciclo de custo negativo alcançável (nesse caso devolve
+    'invalida'). Com o Grafo real isso nunca ocorre, pois a classe Aresta rejeita
+    peso negativo; a detecção existe porque faz parte do algoritmo.
+
+    Parâmetros:
+        grafo: grafo dirigido já montado (por exemplo, por mapa.construir_grafo).
+        origem: id do vértice de partida.
+        destino: id do vértice de chegada.
+        criterio: 'distancia' (m), 'tempo' (s) ou 'custo' (R$). Aceita maiúsculas
+            e espaços extras, mas não acentos ('Distância' é inválido).
+
+    Retorna:
+        ResultadoRota com situação 'encontrada' (caminho e totais),
+        'inalcancavel' ou 'invalida'. nosExpandidos = soma, nas iterações, dos
+        vértices alcançados cujas arestas de saída foram examinadas.
+
+    Exemplo:
+        >>> from grafo import Aresta, Grafo, Vertice
+        >>> praca = Vertice("praca", -19.9240, -43.9930)
+        >>> puc = Vertice("puc", -19.9230, -43.9920)
+        >>> grafo = Grafo()
+        >>> grafo.adicionarAresta(Aresta("rua1", praca, puc, 150.0, 30.0, 18.0, 0.087))
+        >>> resultado = calcularRotaBellmanFord(grafo, "praca", "puc", "tempo")
+        >>> resultado.tempoTotalSegundos, resultado.nosExpandidos
+        (18.0, 2)
+    """
+    # 1) mesma validação do Dijkstra; inválido ou origem = destino já sai aqui
+    criterioNormalizado = _tentarNormalizarCriterio(criterio)
+    resultadoAntecipado = _verificarSolicitacao(grafo, origem, destino, criterioNormalizado)
+    if resultadoAntecipado is not None:
+        return resultadoAntecipado
+    # 2) mesma inicialização; a lista de ids é montada uma vez e reaproveitada
+    #    em todas as iterações
+    idsDosVertices = _listarIdsDosVertices(grafo)
+    distanciaAteOVertice, predecessorDoVertice = _inicializarEstimativas(idsDosVertices, origem)
+    # 3) até |V| - 1 iterações relaxando as arestas tensas
+    nosExpandidos, ultimaIteracaoRelaxou = _executarIteracoesDeBellmanFord(
+        grafo, idsDosVertices, criterioNormalizado, distanciaAteOVertice, predecessorDoVertice
+    )
+    # 4) se parou antes do limite, nenhuma aresta está tensa e não há ciclo
+    #    negativo; se rodou as |V| - 1 e a última ainda relaxou, passada extra
+    if ultimaIteracaoRelaxou:
+        # aresta ainda tensa = ciclo de custo negativo alcançável: não existe
+        # caminho mínimo, então o pedido é inválido (invalida() não aceita mensagem)
+        if _existeArestaTensa(grafo, idsDosVertices, criterioNormalizado, distanciaAteOVertice):
+            return ResultadoRota.invalida()
+    # 5) igual ao Dijkstra: reconstrói o caminho por pred[] e monta o ResultadoRota
+    return _montarResultado(
+        distanciaAteOVertice, predecessorDoVertice, origem, destino, nosExpandidos
+    )
+
+
+def _executarIteracoesDeBellmanFord(
+    grafo: Grafo,
+    idsDosVertices: List[str],
+    criterio: str,
+    distanciaAteOVertice: DistanciasPorVertice,
+    predecessorDoVertice: PredecessoresPorVertice,
+) -> Tuple[int, bool]:
+    """
+    Repete até |V| - 1 iterações, parando antes se uma iteração não relaxar nada.
+
+    Devolve (nosExpandidos somados em todas as iterações, se a última iteração
+    executada ainda relaxou alguma aresta).
+    """
+    # um caminho mínimo sem ciclo tem no máximo |V| - 1 arestas, e ao fim da
+    # iteração k os caminhos mínimos de até k arestas já estão em dist[]
+    quantidadeMaximaDeIteracoes = len(idsDosVertices) - 1
+    # contadores: nós expandidos somados e se a iteração mais recente relaxou algo
+    nosExpandidos = 0
+    houveRelaxacao = False
+    for _numeroDaIteracao in range(quantidadeMaximaDeIteracoes):
+        # uma iteração = examinar todas as arestas e relaxar as tensas
+        verticesExaminados, houveRelaxacao = _executarUmaIteracaoDeBellmanFord(
+            grafo, idsDosVertices, criterio, distanciaAteOVertice, predecessorDoVertice
+        )
+        nosExpandidos += verticesExaminados
+        # término antecipado: iteração sem relaxação deixa dist[] igual, e as
+        # próximas repetiriam a mesma passada sem mudar nada
+        if not houveRelaxacao:
+            break
+    return nosExpandidos, houveRelaxacao
+
+
+def _executarUmaIteracaoDeBellmanFord(
+    grafo: Grafo,
+    idsDosVertices: List[str],
+    criterio: str,
+    distanciaAteOVertice: DistanciasPorVertice,
+    predecessorDoVertice: PredecessoresPorVertice,
+) -> Tuple[int, bool]:
+    """
+    Examina as arestas de saída de cada vértice alcançado e relaxa as tensas.
+
+    Devolve (vértices examinados nesta iteração, se alguma aresta foi relaxada).
+    """
+    # contadores desta iteração
+    verticesExaminados = 0
+    houveRelaxacao = False
+    # percorre os vértices na ordem de inserção; uma melhora feita nesta
+    # iteração já vale para os vértices que vêm depois na lista
+    for verticeAtual in idsDosVertices:
+        # dist infinita: infinito + peso continua infinito e não torna nenhuma
+        # aresta tensa, então o vértice é pulado (e não conta como expandido)
+        if not _verticeFoiAlcancado(distanciaAteOVertice, verticeAtual):
+            continue
+        verticesExaminados += 1
+        # examina cada aresta de saída e relaxa as tensas, como no Dijkstra
+        for arestaDeSaida in grafo.getAdjacencias(verticeAtual):
+            if _tentarRelaxarAresta(
+                arestaDeSaida, criterio, distanciaAteOVertice, predecessorDoVertice
+            ):
+                houveRelaxacao = True
+    return verticesExaminados, houveRelaxacao
+
+
+def _existeArestaTensa(
+    grafo: Grafo,
+    idsDosVertices: List[str],
+    criterio: str,
+    distanciaAteOVertice: DistanciasPorVertice,
+) -> bool:
+    """Passada extra do Bellman-Ford: procura uma aresta ainda tensa, sem relaxar nada."""
+    # mesma varredura de uma iteração, mas só pergunta se a aresta está tensa
+    for verticeAtual in idsDosVertices:
+        # vértice não alcançado não tem aresta tensa (mesmo motivo da iteração)
+        if not _verticeFoiAlcancado(distanciaAteOVertice, verticeAtual):
+            continue
+        # basta uma aresta tensa para provar que existe ciclo negativo alcançável
+        for arestaDeSaida in grafo.getAdjacencias(verticeAtual):
+            if _arestaEstaTensa(arestaDeSaida, criterio, distanciaAteOVertice):
+                return True
+    return False

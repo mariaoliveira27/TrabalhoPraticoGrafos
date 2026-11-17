@@ -1,0 +1,101 @@
+@startuml
+title Modelo de classes - Otimização de rotas urbanas
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam roundCorner 10
+skinparam linetype ortho
+
+skinparam class {
+  BackgroundColor #F5F8FC
+  BorderColor #345678
+  FontColor #1F2937
+  HeaderBackgroundColor #DCEA
+}
+
+top to bottom direction
+
+class Grafo {
+  - vertices: Map<String, Vertice>
+  - adjacencias: Map<String, List<Aresta>>
+  - arestas: Map<String, Aresta>
+  --
+  + adicionarVertice(vertice: Vertice): void
+  + adicionarAresta(aresta: Aresta): void
+  + getVertice(id: String): Vertice?
+  + existeVertice(id: String): Boolean
+  + getAdjacencias(id: String): List<Aresta>
+  + getAresta(id: String): Aresta?
+  + getArestasEntre(origem: String, destino: String): List<Aresta>
+  + getArestas(): List<Aresta>
+  + quantidade_vertices(): Integer
+  + quantidade_arestas(): Integer
+}
+
+class Aresta {
+  - id: String
+  - origem: Vertice
+  - destino: Vertice
+  - distanciaMetros: Double
+  - velocidadeKmH: Double
+  - tempoSegundos: Double
+  - custoReais: Double
+  --
+  + getPeso(criterio: Criterio): Double
+}
+
+class Vertice {
+  - id: String
+  - nome: String?
+  - latitude: Double
+  - longitude: Double
+  --
+  + getId(): String
+  + getNome(): String?
+  + getLatitude(): Double
+  + getLongitude(): Double
+  + mesmaPosicao(outro: Vertice): Boolean
+}
+
+class ResultadoRota {
+  - situacao: Situacao
+  - caminho: List<Aresta>
+  - distanciaTotalMetros: Double?
+  - tempoTotalSegundos: Double?
+  - custoTotalReais: Double?
+  - nosExpandidos: Integer
+  --
+  + {static} aPartirDoCaminho(caminho: List<Aresta>, nosExpandidos: Integer): ResultadoRota
+  + {static} inalcancavel(nosExpandidos: Integer): ResultadoRota
+  + {static} invalida(): ResultadoRota
+  + foiEncontrada(): Boolean
+  + getTotal(criterio: Criterio): Double?
+  + getVerticesCaminho(): List<Vertice>
+  + getDistanciaKm(): Double?
+  + getTempoMinutos(): Double?
+}
+
+enum Criterio {
+  DISTANCIA = "distancia"
+  TEMPO = "tempo"
+  CUSTO = "custo"
+}
+
+enum Situacao {
+  ENCONTRADA = "encontrada"
+  INALCANCAVEL = "inalcancavel"
+  INVALIDA = "invalida"
+}
+
+Grafo "1" *-- "0..*" Vertice : possui
+Grafo "1" *-- "0..*" Aresta : possui
+
+Aresta --> "1" Vertice : origem
+Aresta --> "1" Vertice : destino
+
+ResultadoRota --> "0..*" Aresta : caminho {ordered}
+ResultadoRota ..> Situacao
+Aresta ..> Criterio
+
+@enduml

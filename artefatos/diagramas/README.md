@@ -4,12 +4,14 @@ Este diretório armazena as fontes editáveis em PlantUML (`.txt`) e as respecti
 
 ## Diagramas Modelados
 
-### 1. Diagrama de Classes (`diagramadeclassev2.txt` / `diagramadeclassev2.png`)
-Representa a estrutura de dados central em `grafo.py`:
-- **`Vertice`**: Identificador e coordenadas geográficas (latitude/longitude) dos cruzamentos e nós viários.
-- **`Aresta`**: Segmentos de vias conectando vértices, contendo distância (m), velocidade (km/h), tempo estimado (s) e custo financeiro estimado (R$). Suporta o método `getPeso(criterio)` para os três critérios: `"distancia"`, `"tempo"` e `"custo"`.
-- **`Grafo`**: Estrutura de listas de adjacência próprias para buscas orientadas.
-- **`ResultadoRota`**: Estrutura de retorno com situação da busca, sequência ordenada de arestas, custos consolidados (distância total em metros/km, tempo total em segundos/minutos, custo total em R$) e total de nós expandidos/maduros.
+### 1. Diagrama de Classes (`diagramadeclassev3.txt` / `diagramadeclassev3.png`)
+Representa a estrutura de dados central em `grafo.py`, conforme a implementação atual:
+- **`Vertice`**: Identificador e coordenadas geográficas (latitude/longitude) dos cruzamentos e nós viários. Coordenadas fora da faixa válida, NaN ou infinitas são rejeitadas.
+- **`Aresta`**: Segmento de via dirigido conectando vértices, contendo distância (m), velocidade (km/h), tempo estimado (s) e custo financeiro estimado (R$). Os pesos são finitos e não negativos. Suporta o método `getPeso(criterio)` para os três critérios do enum `Criterio`: `"distancia"`, `"tempo"` e `"custo"`.
+- **`Grafo`**: Estrutura de listas de adjacência próprias para buscas orientadas. O id de cada aresta é único, o que permite identificar arestas paralelas (`getArestasEntre`, `getAresta`).
+- **`ResultadoRota`**: Estrutura de retorno com situação da busca (enum `Situacao`: `"encontrada"`, `"inalcancavel"` ou `"invalida"`), sequência ordenada e contínua de arestas, custos consolidados (distância total em metros/km, tempo total em segundos/minutos, custo total em R$) e total de nós expandidos/maduros. Os construtores `aPartirDoCaminho`, `inalcancavel` e `invalida` garantem totais coerentes com o caminho.
+
+A versão anterior (`diagramadeclassev2.txt` / `diagramadeclassev2.png`) é mantida como histórico.
 
 ### 2. Diagrama de Sequência (`diagramadesequencia.txt` / `diagramasequencia2.png`)
 Representa a interação e o fluxo entre as camadas da ferramenta utilizando o **Método de Dijkstra**:

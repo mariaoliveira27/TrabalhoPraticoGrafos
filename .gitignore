@@ -24,3 +24,4 @@ dist/
 *.swp
 
 # Dados, resultados e artefatos acadêmicos não são ignorados de forma global.
+docs/roteiro_rotas.md

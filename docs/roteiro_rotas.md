@@ -2,7 +2,8 @@
 
 Material de estudo para o grupo explicar `rotas.py` linha por linha (Issue 07). Ordem sugerida de leitura: a visão geral, o fluxo das funções (seção 1), os exemplos com figuras (seções 3 a 5) e, por último, a tabela linha a linha (seção 2) com o código aberto ao lado.
 
-- Os números de linha se referem à versão de `codigo/rotas.py` deste commit. Depois de qualquer mudança no arquivo, rode `python docs/conferir_roteiro.py`: ele aponta toda linha da tabela que deixou de bater.
+- Os números de linha se referem à versão atual de `codigo/rotas.py`. A tabela linha a linha (seção 2), a coluna "linhas" da seção 1.3 e a tabela dos critérios da Issue 07 (seção 1.4) são **geradas** por `python docs/gerar_tabela_linha_a_linha.py`. Não edite essas partes à mão: a explicação de cada linha fica no dicionário `EXPLICACOES` desse script, e as âncoras dos critérios em `CRITERIOS_DA_ISSUE_07`.
+- Depois de qualquer mudança em `rotas.py`, rode `python docs/gerar_tabela_linha_a_linha.py` e depois `python docs/conferir_roteiro.py`, que confere a tabela contra o arquivo, linha por linha. As poucas citações de linha no texto das seções 3 a 6 continuam manuais.
 - As figuras e os estados dos exemplos saem de `python docs/gerar_figuras.py` (requer matplotlib, só para a documentação). O script refaz cada passo e, no fim, confere o estado final com as funções reais de `rotas.py`.
 
 ## Sumário
@@ -28,7 +29,7 @@ calcularRotaBellmanFord(grafo, origem, destino, criterio) -> ResultadoRota
 - `origem`, `destino`: **ids** dos vértices (texto), como em `Grafo.existeVertice`.
 - `criterio`: `'distancia'` (m), `'tempo'` (s) ou `'custo'` (R$). Maiúsculas e espaços são aceitos; acento não (`'Distância'` é inválido).
 
-Todas as outras funções começam com `_` (uso interno, mesma convenção de `_validarNumeroFinito` em `grafo.py`).
+As outras seis funções começam com `_` (uso interno, mesma convenção de `_validarNumeroFinito` em `grafo.py`). Cada algoritmo fica com o seu laço principal dentro da própria função pública; o que é igual nos dois (validar, inicializar, relaxar, reconstruir, montar o resultado) é compartilhado.
 
 **Termos dos slides, como aparecem no código**
 
@@ -37,9 +38,9 @@ Todas as outras funções começam com `_` (uso interno, mesma convenção de `_
 | `dist[v]` | `distanciaAteOVertice[id]` | melhor custo conhecido da origem até o vértice; começa em infinito (`DISTANCIA_INFINITA`), e a origem começa em 0 |
 | `pred[v]` | `predecessorDoVertice[id]` | **aresta** usada para chegar ao vértice (e não só o vértice anterior), para distinguir arestas paralelas |
 | S (maduros) | `verticesMaduros` | vértices cuja distância já é definitiva (só no Dijkstra) |
-| aresta (v, w) tensa | `_arestaEstaTensa` | `dist[v] + d(v, w) < dist[w]` |
-| relaxação | `_tentarRelaxarAresta` | `dist[w] = dist[v] + d(v, w)` e `pred[w] = aresta (v, w)` |
-| fila de prioridade | `_FilaDePrioridade` | heap com entradas `(distância, contador de desempate, id)` |
+| aresta (v, w) tensa | `novaDistancia < distanciaAteOVertice[verticeVizinho]` em `_relaxarSeTensa` | `dist[v] + d(v, w) < dist[w]` |
+| relaxação | `_relaxarSeTensa` | `dist[w] = dist[v] + d(v, w)` e `pred[w] = aresta (v, w)` |
+| fila de prioridade | `filaDePrioridade` (lista + `heapq`) | heap com entradas `(distância, desempate, id)` |
 
 **Regras iguais nos dois algoritmos**
 
@@ -52,7 +53,7 @@ Todas as outras funções começam com `_` (uso interno, mesma convenção de `_
 **`nosExpandidos` não é comparável entre os dois**
 
 - Dijkstra: quantos vértices foram declarados maduros (cada vértice conta no máximo uma vez).
-- Bellman-Ford: soma, em todas as iterações, dos vértices com `dist` finita cujas arestas de saída foram examinadas (o mesmo vértice conta uma vez **por iteração**).
+- Bellman-Ford: soma, em todas as iterações, dos vértices com `dist` finita cujas arestas de saída foram examinadas (o mesmo vértice conta uma vez **por iteração**). A passada extra de ciclo negativo não entra na soma.
 
 No grafo dos slides, indo de c até a, o Dijkstra expande 6 e o Bellman-Ford 12, e os dois acham o mesmo custo.
 
@@ -67,19 +68,14 @@ No grafo dos slides, indo de c até a, o Dijkstra expande 6 e o Bellman-Ford 12,
 
 ```text
 calcularRotaDijkstra
-├─ _tentarNormalizarCriterio ───────── normalizarCriterio (grafo.py)
-├─ _verificarSolicitacao ───────────── Grafo.existeVertice, ResultadoRota.invalida / aPartirDoCaminho
-├─ _listarIdsDosVertices ───────────── Grafo.vertices
-├─ _inicializarEstimativas
-├─ _executarLacoDeDijkstra
-│   ├─ _FilaDePrioridade (inserir, retirarMenor, estaVazia) ── heapq
-│   ├─ _entradaEstaDesatualizada
+├─ _verificarSolicitacao ──────── normalizarCriterio, Grafo.existeVertice,
+│                                 ResultadoRota.invalida / aPartirDoCaminho
+├─ _inicializarEstimativas ────── Grafo.vertices
+├─ laço principal (na própria função)
+│   ├─ heapq.heappop / heapq.heappush
 │   ├─ Grafo.getAdjacencias
-│   └─ _tentarRelaxarAresta
-│       └─ _arestaEstaTensa
-│           └─ _calcularNovaDistanciaEstimada ── Aresta.getPeso
+│   └─ _relaxarSeTensa ────────── Aresta.getPeso
 └─ _montarResultado
-    ├─ _verticeFoiAlcancado
     ├─ _reconstruirCaminho
     └─ ResultadoRota.inalcancavel / aPartirDoCaminho
 ```
@@ -88,15 +84,13 @@ calcularRotaDijkstra
 
 ```text
 calcularRotaBellmanFord
-├─ _tentarNormalizarCriterio, _verificarSolicitacao,
-│  _listarIdsDosVertices, _inicializarEstimativas        (as mesmas do Dijkstra)
-├─ _executarIteracoesDeBellmanFord
-│   └─ _executarUmaIteracaoDeBellmanFord                 (até |V| − 1 vezes)
-│       ├─ _verticeFoiAlcancado
-│       ├─ Grafo.getAdjacencias
-│       └─ _tentarRelaxarAresta → _arestaEstaTensa → _calcularNovaDistanciaEstimada
-├─ _existeArestaTensa                                    (só se a última iteração relaxou)
-└─ _montarResultado                                      (a mesma do Dijkstra)
+├─ _verificarSolicitacao, _inicializarEstimativas          (as mesmas do Dijkstra)
+├─ laço de até |V| − 1 iterações (na própria função)
+│   └─ _executarIteracaoDeBellmanFord
+│       ├─ Grafo.vertices, Grafo.getAdjacencias
+│       └─ _relaxarSeTensa                                  (a mesma do Dijkstra)
+├─ passada extra: _executarIteracaoDeBellmanFord            (só se a última iteração relaxou)
+└─ _montarResultado                                         (a mesma do Dijkstra)
 ```
 
 ### 1.3 Cada função: entra, sai, por que existe
@@ -106,354 +100,176 @@ Na ordem em que são executadas numa chamada de `calcularRotaDijkstra`, seguidas
 <!-- funcoes:inicio -->
 | ordem | função | linhas | entra | sai | por que existe |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `calcularRotaDijkstra` | 255–304 | grafo, origem, destino, critério | `ResultadoRota` | Ponto de entrada público. Só encadeia os quatro passos: validar, inicializar, laço, montar resultado. |
-| 2 | `_tentarNormalizarCriterio` | 88–96 | critério digitado | critério limpo ou `None` | `normalizarCriterio` lança `ValueError`; aqui o erro vira `None` para o pedido ser respondido como `'invalida'` em vez de quebrar a interface. |
-| 3 | `_verificarSolicitacao` | 99–122 | grafo, origem, destino, critério normalizado | `ResultadoRota` pronto ou `None` | Separa os pedidos que não precisam de busca (critério inválido, vértice inexistente, origem = destino) do caso que precisa. Os dois algoritmos usam a mesma regra. |
-| 4 | `_listarIdsDosVertices` | 125–130 | grafo | lista de ids | O `Grafo` não tem método que liste vértices; a lista é montada a partir da propriedade `grafo.vertices`, uma vez por chamada. |
-| 5 | `_inicializarEstimativas` | 133–147 | ids, origem | `(dist, pred)` | Inicialização dos slides: dist infinita, origem 0, pred indefinido. Compartilhada. |
-| 6 | `_executarLacoDeDijkstra` | 307–349 | grafo, origem, destino, critério, dist, pred | `nosExpandidos` | O laço do slide: seleciona o imaturo de menor dist, declara maduro, para no destino, relaxa as arestas de saída. Altera dist e pred no lugar. |
-| 7 | `_FilaDePrioridade` | 368–399 | distância e id (`inserir`) | menor entrada (`retirarMenor`) | Esconde o `heapq` e o contador de desempate atrás de três operações com nome claro. |
-| 8 | `_entradaEstaDesatualizada` | 352–365 | distância da entrada, vértice, maduros, dist | `bool` | Remoção preguiçosa: decide se uma entrada que saiu da fila é velha e deve ser ignorada. |
-| 9 | `_tentarRelaxarAresta` | 184–205 | aresta, critério, dist, pred | `True` se relaxou | A relaxação dos slides, usada pelos dois algoritmos. |
-| 10 | `_arestaEstaTensa` | 168–181 | aresta, critério, dist | `bool` | Definição de aresta tensa com `<` estrito (regra de empate). Usada também na passada extra do Bellman-Ford. |
-| 11 | `_calcularNovaDistanciaEstimada` | 156–165 | aresta, critério, dist | `dist[v] + d(v, w)` | Um único lugar que soma a distância até v com o peso da aresta no critério. |
-| 12 | `_montarResultado` | 233–247 | dist, pred, origem, destino, nosExpandidos | `ResultadoRota` | Decide entre `'inalcancavel'` e `'encontrada'` e entrega o caminho a `aPartirDoCaminho`, que soma os totais. |
-| 13 | `_verticeFoiAlcancado` | 150–153 | dist, id | `bool` | Pergunta "dist é finita?", usada no resultado e para pular vértices no Bellman-Ford. |
-| 14 | `_reconstruirCaminho` | 208–230 | pred, origem, destino | lista de arestas | Anda de trás para frente por pred[] e inverte a lista. |
-| 15 | `calcularRotaBellmanFord` | 407–467 | grafo, origem, destino, critério | `ResultadoRota` | Ponto de entrada público do Bellman-Ford: mesma validação, inicialização e montagem; troca o laço e acrescenta a detecção de ciclo negativo. |
-| 16 | `_executarIteracoesDeBellmanFord` | 470–499 | grafo, ids, critério, dist, pred | `(nosExpandidos, última iteração relaxou?)` | Repete até \|V\| − 1 iterações, com término antecipado. |
-| 17 | `_executarUmaIteracaoDeBellmanFord` | 502–531 | grafo, ids, critério, dist, pred | `(vértices examinados, relaxou?)` | Uma iteração: examina as arestas de saída de cada vértice alcançado e relaxa as tensas. |
-| 18 | `_existeArestaTensa` | 534–550 | grafo, ids, critério, dist | `bool` | Passada extra: se ainda há aresta tensa depois de \|V\| − 1 iterações, existe ciclo de custo negativo alcançável. |
+| 1 | `calcularRotaDijkstra` | 107–148 | grafo, origem, destino, critério | `ResultadoRota` | Ponto de entrada público e o algoritmo inteiro: valida, inicializa, roda o laço dos slides (seleciona no heap o imaturo de menor dist, declara maduro, para no destino, relaxa as arestas de saída) e monta o resultado. |
+| 2 | `_verificarSolicitacao` | 38–49 | grafo, origem, destino, critério | `ResultadoRota` pronto ou `None` | Separa os pedidos que não precisam de busca (critério inválido, vértice inexistente, origem = destino) do caso que precisa. Os dois algoritmos usam a mesma regra. |
+| 3 | `_inicializarEstimativas` | 53–59 | grafo, origem | `(dist, pred)` | Inicialização dos slides: dist infinita, origem 0, pred indefinido. Compartilhada. |
+| 4 | `_relaxarSeTensa` | 63–73 | aresta, critério, dist, pred | `True` se relaxou | Definição de aresta tensa (com `<` estrito, a regra de empate) e relaxação num lugar só, usada pelos dois algoritmos. `dist[v] + d(v, w)` é calculado uma única vez. |
+| 5 | `_montarResultado` | 91–98 | dist, pred, origem, destino, nosExpandidos | `ResultadoRota` | Decide entre `'inalcancavel'` e `'encontrada'` e entrega o caminho a `aPartirDoCaminho`, que soma os totais. |
+| 6 | `_reconstruirCaminho` | 77–87 | pred, origem, destino | lista de arestas | Anda de trás para frente por pred[] e inverte a lista. |
+| 7 | `calcularRotaBellmanFord` | 157–196 | grafo, origem, destino, critério | `ResultadoRota` | Ponto de entrada público do Bellman-Ford: mesma validação, inicialização e montagem; o laço de até \|V\| − 1 iterações, com término antecipado, e a passada extra de ciclo negativo. |
+| 8 | `_executarIteracaoDeBellmanFord` | 200–213 | grafo, critério, dist, pred | `(vértices examinados, relaxou?)` | Uma iteração: examina as arestas de saída de cada vértice alcançado e relaxa as tensas. É usada no laço e na passada extra: se a passada extra ainda relaxa alguma aresta, ela estava tensa depois de \|V\| − 1 iterações, e isso prova que há ciclo negativo alcançável. |
 <!-- funcoes:fim -->
+
+### 1.4 Critérios de aceite da Issue 07 no código
+
+Os critérios vêm de `artefatos/planejamento/issues_github.md`. Tabela gerada a partir de trechos do código, com os testes de `test_rotas_dijkstra_bellman_ford.py` que conferem cada um.
+
+<!-- criterios-issue-07:inicio -->
+| critério de aceite | onde está em `codigo/rotas.py` | testes que conferem |
+| --- | --- | --- |
+| Busca retorna caminho mínimo para cada critério com pesos não negativos. | laço do Dijkstra: linhas 132–145; iterações do Bellman-Ford: linhas 181–187; relaxação com o peso do critério (`getPeso`): linhas 67–73 | `test_cada_criterio_escolhe_sua_rota`, `test_grafo_dos_slides`, `test_validacao_cruzada_mapa_real` |
+| Caminho respeita direção e arestas reais; custos consolidados conferem. | só arestas que saem de v (Dijkstra): linha 140; só arestas que saem de v (Bellman-Ford): linha 210; pred[] guarda a própria aresta: linha 71; reconstrução por pred[]: linhas 77–87; totais somados das arestas do caminho: linha 98 | `test_mao_unica_nao_pode_ser_percorrida_ao_contrario`, `test_aresta_paralela_mais_barata_e_escolhida` |
+| Origem=destino retorna custo zero; destino inalcançável tem estado próprio. | origem = destino: linhas 47–48; inalcançável: linhas 95–96 | `test_origem_igual_ao_destino_tem_custo_zero`, `test_destino_inalcancavel_tem_estado_proprio` |
+| Solicitação/critério inválido é diferenciado de falta de caminho. | critério inválido: linhas 41–44; vértice inexistente: linhas 45–46; ciclo negativo (Bellman-Ford): linhas 192–193 | `test_vertice_inexistente_e_pedido_invalido`, `test_criterio_invalido_e_pedido_invalido`, `test_bellman_ford_detecta_ciclo_negativo_alcancavel` |
+| Resultado tem os campos acordados, incluindo nós processados. | nosExpandidos do Dijkstra (vértices maduros): linha 147; nosExpandidos do Bellman-Ford (soma por iteração): linha 185; vértices examinados numa iteração: linha 209; construtores do `ResultadoRota`: linhas 96–98 | `test_dijkstra_conta_vertices_maduros_e_para_no_destino`, `test_bellman_ford_soma_vertices_examinados_por_iteracao` |
+| Nenhuma biblioteca externa é usada para executar a busca. | imports (só `heapq`, `typing` e `grafo`): linhas 17–20 | `test_rotas_usa_somente_biblioteca_padrao_e_grafo` |
+<!-- criterios-issue-07:fim -->
 
 ## 2. Tabela linha a linha
 
-Linhas em branco foram omitidas. Comentários e docstrings aparecem como intervalos (não executam); cada linha que executa tem a sua própria linha na tabela.
+Linhas em branco foram omitidas. Comentários e docstrings aparecem como intervalos (não executam); cada linha que executa tem a sua própria linha na tabela. Tabela gerada por `docs/gerar_tabela_linha_a_linha.py`.
 
 <!-- tabela-linha-a-linha:inicio -->
 | linha | código | o que faz |
 | --- | --- | --- |
-| 1–57 | `"""` | Docstring do módulo (texto de documentação, não executa): "Caminho mínimo no grafo viário: Método de Dijkstra e algoritmo de Bellman-Ford." |
-| 59 | `import heapq` | Importa o `heapq`, da biblioteca padrão: funções que tratam uma lista comum como heap mínimo (fila de prioridade). Só a fila do Dijkstra usa. |
-| 60 | `from typing import Dict, List, Optional, Set, Tuple` | Importa os tipos usados nas anotações: `Dict` (dicionário), `List`, `Optional` (valor ou `None`), `Set` (conjunto) e `Tuple`. Anotações não mudam a execução; documentam o que entra e sai. |
-| 62 | `from grafo import Aresta, Grafo, ResultadoRota, normalizarCriterio` | Reaproveita o modelo do grafo.py: `Aresta` e `Grafo` (anotações e leitura), `ResultadoRota` (o que devolvemos) e `normalizarCriterio` (valida o critério). |
-| 64 | `# "Infinito" dos slides: valor inicial de dist[] para vértice ainda…` | Comentário (não executa): explica o passo que começa na linha 65. |
-| 65 | `DISTANCIA_INFINITA: float = float("inf")` | Constante com o infinito do Python. Qualquer número finito é menor que ele, então serve como estimativa inicial de "nenhum caminho conhecido". |
-| 67 | `# Custo para ir da origem até ela mesma; é o valor inicial de dist[…` | Comentário (não executa): explica o passo que começa na linha 68. |
-| 68 | `DISTANCIA_DA_ORIGEM: float = 0.0` | Constante 0.0: valor inicial de dist[origem]. |
-| 70 | `# Nós expandidos quando a busca nem precisa rodar (origem igual ao…` | Comentário (não executa): explica o passo que começa na linha 71. |
-| 71 | `NENHUM_NO_EXPANDIDO: int = 0` | Constante 0: nós expandidos quando a busca nem roda (origem = destino). |
-| 73 | `# dist[]: id do vértice -> melhor custo conhecido desde a origem.` | Comentário (não executa): explica o passo que começa na linha 74. |
-| 74 | `DistanciasPorVertice = Dict[str, float]` | Apelido de tipo para dist[]: dicionário id (texto) -> custo (float). Só deixa as assinaturas mais curtas e legíveis. |
-| 76 | `# pred[]: id do vértice -> aresta usada para chegar nele (None = in…` | Comentário (não executa): explica o passo que começa na linha 77. |
-| 77 | `PredecessoresPorVertice = Dict[str, Optional[Aresta]]` | Apelido de tipo para pred[]: id -> `Aresta` ou `None`. Guarda a aresta, e não o vértice, para distinguir arestas paralelas. |
-| 79 | `# Entrada da fila de prioridade: (distância estimada, contador de d…` | Comentário (não executa): explica o passo que começa na linha 80. |
-| 80 | `EntradaDaFila = Tuple[float, int, str]` | Apelido de tipo das entradas do heap: (distância, contador de desempate, id). O Python compara tuplas elemento a elemento: primeiro a distância, depois o contador. |
-| 83–85 | `# Funções compartilhadas pelos dois algoritmos` | Título de seção (comentário, não executa). |
-| 88 | `def _tentarNormalizarCriterio(criterio: str) -> Optional[str]:` | Define a função auxiliar. O `_` no início do nome indica uso interno do módulo (mesma convenção de `_validarNumeroFinito` em grafo.py). Recebe o critério digitado e devolve o critério limpo ou `None`. |
-| 89 | `"""Devolve 'distancia', 'tempo' ou 'custo', ou None se o critério for inválido."""` | Docstring de `_tentarNormalizarCriterio` (texto de documentação, não executa): "Devolve 'distancia', 'tempo' ou 'custo', ou None se o critério for inválido." |
-| 90–92 | `# normalizarCriterio (grafo.py) aceita maiúsculas e espaços extras…` | Comentário (não executa): explica o passo que começa na linha 93. |
-| 93 | `try:` | Abre um bloco protegido: se a linha seguinte lançar `ValueError`, a execução pula para o `except`. |
-| 94 | `return normalizarCriterio(criterio)` | Chama `normalizarCriterio` do grafo.py: tira espaços, passa para minúsculas e confere se é 'distancia', 'tempo' ou 'custo'. Se for válido, devolve o texto limpo. |
-| 95 | `except ValueError:` | Captura só `ValueError` (critério desconhecido, vazio, `None` ou número). Outros erros não são escondidos. |
-| 96 | `return None` | Sinaliza "critério inválido" com `None`, sem lançar exceção. |
-| 99 | `def _verificarSolicitacao(` | Início da assinatura da função que resolve os pedidos que não precisam de busca. |
-| 100 | `grafo: Grafo,` | Parâmetro: o grafo dirigido onde a busca acontece (só é lido, nunca alterado). |
-| 101 | `origem: str,` | Parâmetro: id (texto) do vértice de partida. |
-| 102 | `destino: str,` | Parâmetro: id (texto) do vértice de chegada. |
-| 103 | `criterioNormalizado: Optional[str],` | Parâmetro: o critério já normalizado, ou `None` se ele era inválido. |
-| 104 | `) -> Optional[ResultadoRota]:` | Fecha a assinatura: devolve um `ResultadoRota` pronto ou `None` ("pode buscar"). |
-| 105–110 | `"""` | Docstring de `_verificarSolicitacao` (texto de documentação, não executa): "Resolve os pedidos que não precisam de busca." |
-| 111 | `# critério inválido: _tentarNormalizarCriterio devolveu None` | Comentário (não executa): explica o passo que começa na linha 112. |
-| 112 | `if criterioNormalizado is None:` | Testa se o critério foi recusado na normalização. |
-| 113 | `return ResultadoRota.invalida()` | Devolve o resultado 'invalida' (sem caminho e sem totais) pelo construtor do grafo.py. |
-| 114–115 | `# vértice inexistente é pedido inválido, e não falta de caminho; ch…` | Comentário (não executa): explica o passo que começa na linha 116. |
-| 116 | `if not grafo.existeVertice(origem) or not grafo.existeVertice(destino):` | Pergunta ao `Grafo` se origem e destino existem; basta um não existir. Sem esta checagem, `getAdjacencias` devolveria lista vazia e o pedido sairia, errado, como 'inalcancavel'. |
-| 117 | `return ResultadoRota.invalida()` | Pedido inválido: vértice inexistente. |
-| 118 | `# origem igual ao destino: rota sem arestas, custo zero, ninguém ex…` | Comentário (não executa): explica o passo que começa na linha 119. |
-| 119 | `if origem == destino:` | Caso trivial: partida e chegada são o mesmo vértice. |
-| 120 | `return ResultadoRota.aPartirDoCaminho([], nosExpandidos=NENHUM_NO_EXPANDIDO)` | Rota 'encontrada' com caminho vazio: `aPartirDoCaminho` soma zero arestas, então distância, tempo e custo totais valem 0, e nosExpandidos = 0. |
-| 121 | `# pedido válido e não trivial: None avisa que a busca precisa rodar` | Comentário (não executa): explica o passo que começa na linha 122. |
-| 122 | `return None` | Nenhum caso especial: devolve `None` e quem chamou segue para a busca. |
-| 125 | `def _listarIdsDosVertices(grafo: Grafo) -> List[str]:` | Define a função que lista os ids de todos os vértices. |
-| 126 | `"""Devolve os ids de todos os vértices do grafo, na ordem de inserção."""` | Docstring de `_listarIdsDosVertices` (texto de documentação, não executa): "Devolve os ids de todos os vértices do grafo, na ordem de inserção." |
-| 127–129 | `# o Grafo não tem método que liste os vértices; a propriedade grafo…` | Comentário (não executa): explica o passo que começa na linha 130. |
-| 130 | `return list(grafo.vertices.keys())` | `grafo.vertices` é a propriedade do `Grafo` (dicionário id -> `Vertice`); `.keys()` são os ids e `list(...)` copia para uma lista. Dicionários do Python preservam a ordem de inserção. |
-| 133 | `def _inicializarEstimativas(` | Início da assinatura da inicialização de dist[] e pred[]. |
-| 134 | `idsDosVertices: List[str],` | Parâmetro: lista com o id de todos os vértices (vem de `_listarIdsDosVertices`). |
-| 135 | `origem: str,` | Parâmetro: a origem, raiz da busca. |
-| 136 | `) -> Tuple[DistanciasPorVertice, PredecessoresPorVertice]:` | Fecha a assinatura: devolve as duas estruturas juntas, numa tupla (dist, pred). |
-| 137 | `"""Cria dist[] (infinito, exceto a origem = 0) e pred[] (todos indefinidos)."""` | Docstring de `_inicializarEstimativas` (texto de documentação, não executa): "Cria dist[] (infinito, exceto a origem = 0) e pred[] (todos indefinidos)." |
-| 138 | `# dist[] e pred[] dos slides, indexados pelo id do vértice` | Comentário (não executa): explica o passo que começa na linha 139. |
-| 139 | `distanciaAteOVertice: DistanciasPorVertice = {}` | Cria dist[] vazio, anotado com o apelido de tipo. |
-| 140 | `predecessorDoVertice: PredecessoresPorVertice = {}` | Cria pred[] vazio. |
-| 141 | `# todo vértice começa sem caminho conhecido: distância infinita, se…` | Comentário (não executa): explica o passo que começa na linha 142. |
-| 142 | `for idDoVertice in idsDosVertices:` | Percorre todos os vértices do grafo: custo O(V). |
-| 143 | `distanciaAteOVertice[idDoVertice] = DISTANCIA_INFINITA` | Estimativa inicial: nenhum caminho conhecido (infinito). |
-| 144 | `predecessorDoVertice[idDoVertice] = None` | Predecessor ainda indefinido. |
-| 145 | `# a origem é a raiz da busca: chegar nela custa zero` | Comentário (não executa): explica o passo que começa na linha 146. |
-| 146 | `distanciaAteOVertice[origem] = DISTANCIA_DA_ORIGEM` | Sobrescreve a origem: chegar nela custa zero. |
-| 147 | `return distanciaAteOVertice, predecessorDoVertice` | Devolve a tupla; quem chama desempacota em duas variáveis. |
-| 150 | `def _verticeFoiAlcancado(distanciaAteOVertice: DistanciasPorVertice, idDoVertice: str) -> bool:` | Define o teste "já existe caminho conhecido até este vértice?". Recebe dist[] e um id; devolve `bool`. |
-| 151 | `"""Indica se já existe algum caminho conhecido da origem até o vértice."""` | Docstring de `_verticeFoiAlcancado` (texto de documentação, não executa): "Indica se já existe algum caminho conhecido da origem até o vértice." |
-| 152 | `# dist finita: algum caminho já chegou nele; dist infinita: ainda não` | Comentário (não executa): explica o passo que começa na linha 153. |
-| 153 | `return distanciaAteOVertice[idDoVertice] < DISTANCIA_INFINITA` | `True` se a estimativa é finita (menor que infinito). |
-| 156 | `def _calcularNovaDistanciaEstimada(` | Início da assinatura do cálculo dist[v] + d(v, w). |
-| 157 | `arestaDeSaida: Aresta,` | Parâmetro: a aresta (v, w) que está sendo examinada. |
-| 158 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 159 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 160 | `) -> float:` | Fecha a assinatura: devolve um número (a nova estimativa). |
-| 161 | `"""Calcula dist[v] + d(v, w) para a aresta (v, w) no critério escolhido."""` | Docstring de `_calcularNovaDistanciaEstimada` (texto de documentação, não executa): "Calcula dist[v] + d(v, w) para a aresta (v, w) no critério escolhido." |
-| 162–163 | `# v é a origem da aresta; getPeso devolve metros, segundos ou reais,` | Comentário (não executa): explica o passo que começa na linha 164. |
-| 164 | `verticeAtual = arestaDeSaida.origem.id` | Pega o id de v. A aresta guarda o objeto `Vertice` de origem; `.id` é o texto usado como chave em dist[]. |
-| 165 | `return distanciaAteOVertice[verticeAtual] + arestaDeSaida.getPeso(criterio)` | Soma a distância conhecida até v com o peso da aresta no critério escolhido (metros, segundos ou reais, via `getPeso`). |
-| 168 | `def _arestaEstaTensa(` | Início da assinatura do teste de aresta tensa. |
-| 169 | `arestaDeSaida: Aresta,` | Parâmetro: a aresta (v, w) que está sendo examinada. |
-| 170 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 171 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 172 | `) -> bool:` | Fecha a assinatura: a função devolve `True` ou `False`. |
-| 173 | `"""Indica se a aresta (v, w) está tensa: dist[v] + d(v, w) < dist[w]."""` | Docstring de `_arestaEstaTensa` (texto de documentação, não executa): "Indica se a aresta (v, w) está tensa: dist[v] + d(v, w) < dist[w]." |
-| 174 | `# w é o destino da aresta; calcula quanto custaria chegar em w pass…` | Comentário (não executa): explica o passo que começa na linha 175. |
-| 175 | `verticeVizinho = arestaDeSaida.destino.id` | Pega o id de w, o destino da aresta. |
-| 176 | `novaDistanciaEstimada = _calcularNovaDistanciaEstimada(` | Calcula dist[v] + d(v, w) chamando a função anterior... |
-| 177 | `arestaDeSaida, criterio, distanciaAteOVertice` | Argumentos da chamada: a aresta, o critério e dist[]. |
-| 178 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 179–180 | `# regra de empate: comparação estritamente menor; com custo igual a…` | Comentário (não executa): explica o passo que começa na linha 181. |
-| 181 | `return novaDistanciaEstimada < distanciaAteOVertice[verticeVizinho]` | Definição de aresta tensa dos slides: dist[v] + d(v, w) < dist[w]. O `<` estrito é a regra de empate: custo igual não conta como melhora. Isso também impede que arestas de peso zero formem ciclos em pred[]. |
-| 184 | `def _tentarRelaxarAresta(` | Início da assinatura da relaxação. |
-| 185 | `arestaDeSaida: Aresta,` | Parâmetro: a aresta (v, w) que está sendo examinada. |
-| 186 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 187 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 188 | `predecessorDoVertice: PredecessoresPorVertice,` | Parâmetro: pred[], o dicionário id -> aresta usada para chegar no vértice. |
-| 189 | `) -> bool:` | Fecha a assinatura: devolve se houve relaxação. O Dijkstra usa isso para inserir na fila; o Bellman-Ford, para saber se a iteração mudou algo. |
-| 190–194 | `"""` | Docstring de `_tentarRelaxarAresta` (texto de documentação, não executa): "Relaxa a aresta (v, w) se ela estiver tensa." |
-| 195 | `# aresta não tensa: passar por ela não melhora dist[w], então nada…` | Comentário (não executa): explica o passo que começa na linha 196. |
-| 196 | `if not _arestaEstaTensa(arestaDeSaida, criterio, distanciaAteOVertice):` | Se a aresta não está tensa... |
-| 197 | `return False` | ...não há nada a fazer: dist[] e pred[] ficam como estavam. |
-| 198–199 | `# relaxação: achamos caminho melhor até w, então atualiza dist[w] e…` | Comentário (não executa): explica o passo que começa na linha 200. |
-| 200 | `verticeVizinho = arestaDeSaida.destino.id` | Pega o id de w, a chave que será atualizada. |
-| 201 | `distanciaAteOVertice[verticeVizinho] = _calcularNovaDistanciaEstimada(` | Relaxação, parte 1: dist[w] recebe dist[v] + d(v, w) (o valor é recalculado; é uma soma barata). |
-| 202 | `arestaDeSaida, criterio, distanciaAteOVertice` | Argumentos da chamada: a aresta, o critério e dist[]. |
-| 203 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 204 | `predecessorDoVertice[verticeVizinho] = arestaDeSaida` | Relaxação, parte 2: pred[w] recebe a própria aresta usada. Com arestas paralelas, é isso que diz qual delas foi escolhida. |
-| 205 | `return True` | Informa que dist[w] mudou. |
-| 208 | `def _reconstruirCaminho(` | Início da assinatura da reconstrução do caminho. |
-| 209 | `predecessorDoVertice: PredecessoresPorVertice,` | Parâmetro: pred[] final da busca. |
-| 210 | `origem: str,` | Parâmetro: a origem, onde a caminhada para trás termina. |
-| 211 | `destino: str,` | Parâmetro: o destino, onde a caminhada para trás começa. |
-| 212 | `) -> List[Aresta]:` | Fecha a assinatura: devolve a lista de arestas na ordem do percurso. |
-| 213–218 | `"""` | Docstring de `_reconstruirCaminho` (texto de documentação, não executa): "Monta a lista de arestas da origem até o destino seguindo pred[]." |
-| 219 | `# começa pelo destino, com a lista de arestas ainda vazia` | Comentário (não executa): explica o passo que começa na linha 220. |
-| 220 | `arestasDoDestinoAteAOrigem: List[Aresta] = []` | Lista onde as arestas são coletadas de trás para frente. |
-| 221 | `verticeDoCaminho = destino` | Começa a caminhada no destino. |
-| 222–223 | `# anda para trás: pega a aresta usada para chegar no vértice e pass…` | Comentário (não executa): explica o passo que começa na linha 224. |
-| 224 | `while verticeDoCaminho != origem:` | Repete até chegar à origem (a origem não tem predecessor). |
-| 225 | `arestaUsada = predecessorDoVertice[verticeDoCaminho]` | Lê em pred[] a aresta usada para chegar neste vértice. |
-| 226 | `arestasDoDestinoAteAOrigem.append(arestaUsada)` | Guarda a aresta na lista. |
-| 227 | `verticeDoCaminho = arestaUsada.origem.id` | Volta um passo: o próximo vértice é a origem dessa aresta. |
-| 228 | `# as arestas vieram do destino para a origem; inverte para a ordem…` | Comentário (não executa): explica o passo que começa na linha 229. |
-| 229 | `caminhoNaOrdemDoPercurso = list(reversed(arestasDoDestinoAteAOrigem))` | `reversed` percorre a lista de trás para frente e `list(...)` cria a nova lista, agora na ordem origem -> destino. |
-| 230 | `return caminhoNaOrdemDoPercurso` | Devolve o caminho pronto. |
-| 233 | `def _montarResultado(` | Início da assinatura da montagem do resultado final. |
-| 234 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 235 | `predecessorDoVertice: PredecessoresPorVertice,` | Parâmetro: pred[], o dicionário id -> aresta usada para chegar no vértice. |
-| 236 | `origem: str,` | Parâmetro: id (texto) do vértice de partida. |
-| 237 | `destino: str,` | Parâmetro: id (texto) do vértice de chegada. |
-| 238 | `nosExpandidos: int,` | Parâmetro: o contador de nós expandidos calculado pelo algoritmo (cada algoritmo tem a sua definição). |
-| 239 | `) -> ResultadoRota:` | Fecha a assinatura: devolve o `ResultadoRota`. |
-| 240 | `"""Transforma dist[] e pred[] finais em ResultadoRota (encontrada ou inalcançável)."""` | Docstring de `_montarResultado` (texto de documentação, não executa): "Transforma dist[] e pred[] finais em ResultadoRota (encontrada ou inalcançável)." |
-| 241 | `# dist[destino] continuou infinita: nenhum caminho chega ao destino` | Comentário (não executa): explica o passo que começa na linha 242. |
-| 242 | `if not _verticeFoiAlcancado(distanciaAteOVertice, destino):` | dist[destino] ainda infinita: a busca terminou sem chegar ao destino. |
-| 243 | `return ResultadoRota.inalcancavel(nosExpandidos)` | Estado próprio 'inalcancavel': pedido válido, sem caminho. Guarda quantos nós foram expandidos até desistir. |
-| 244–245 | `# caso normal: aPartirDoCaminho soma os pesos das próprias arestas do` | Comentário (não executa): explica o passo que começa na linha 246. |
-| 246 | `caminho = _reconstruirCaminho(predecessorDoVertice, origem, destino)` | Destino alcançado: reconstrói o caminho por pred[]. |
-| 247 | `return ResultadoRota.aPartirDoCaminho(caminho, nosExpandidos)` | Cria o resultado 'encontrada'. Os totais (m, s, R$) são somados com `math.fsum` a partir das arestas do caminho, e o `ResultadoRota` ainda confere que o caminho é contínuo. |
-| 250–252 | `# Método de Dijkstra (slides "Caminho Mínimo (1)")` | Título de seção (comentário, não executa). |
-| 255 | `def calcularRotaDijkstra(` | Função pública do Dijkstra (sem `_`): é a que app.py e os testes chamam. |
-| 256 | `grafo: Grafo,` | Parâmetro: o grafo dirigido onde a busca acontece (só é lido, nunca alterado). |
-| 257 | `origem: str,` | Parâmetro: id (texto) do vértice de partida. |
-| 258 | `destino: str,` | Parâmetro: id (texto) do vértice de chegada. |
-| 259 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 260 | `) -> ResultadoRota:` | Fecha a assinatura: a função devolve um `ResultadoRota`. |
-| 261–287 | `"""` | Docstring de `calcularRotaDijkstra` (texto de documentação, não executa): "Calcula a rota de menor custo de origem até destino pelo Método de Dijkstra." |
-| 288 | `# 1) valida o pedido; inválido ou origem = destino já sai aqui` | Comentário (não executa): explica o passo que começa na linha 289. |
-| 289 | `criterioNormalizado = _tentarNormalizarCriterio(criterio)` | Passo 1: normaliza o critério uma única vez; `None` se for inválido. |
-| 290 | `resultadoAntecipado = _verificarSolicitacao(grafo, origem, destino, criterioNormalizado)` | Confere critério, existência dos vértices e origem = destino. |
-| 291 | `if resultadoAntecipado is not None:` | Se já existe uma resposta... |
-| 292 | `return resultadoAntecipado` | ...devolve sem rodar a busca. |
-| 293 | `# 2) dist[] infinito (origem = 0) e pred[] indefinido` | Comentário (não executa): explica o passo que começa na linha 294. |
-| 294 | `distanciaAteOVertice, predecessorDoVertice = _inicializarEstimativas(` | Passo 2: cria dist[] e pred[] e desempacota a tupla em duas variáveis... |
-| 295 | `_listarIdsDosVertices(grafo), origem` | ...passando a lista de todos os ids e a origem como raiz. |
-| 296 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 297 | `# 3) laço principal dos slides: seleciona o imaturo, relaxa, declar…` | Comentário (não executa): explica o passo que começa na linha 298. |
-| 298 | `nosExpandidos = _executarLacoDeDijkstra(` | Passo 3: roda o laço principal. Ele altera dist[] e pred[] nos próprios dicionários (o Python passa a referência do objeto, não uma cópia) e devolve quantos vértices amadureceram. |
-| 299 | `grafo, origem, destino, criterioNormalizado, distanciaAteOVertice, predecessorDoVertice` | Argumentos: grafo, origem, destino, critério normalizado, dist[] e pred[]. |
-| 300 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 301 | `# 4) reconstrói o caminho por pred[] e monta o ResultadoRota` | Comentário (não executa): explica o passo que começa na linha 302. |
-| 302 | `return _montarResultado(` | Passo 4: transforma dist[] e pred[] no `ResultadoRota`. |
-| 303 | `distanciaAteOVertice, predecessorDoVertice, origem, destino, nosExpandidos` | Argumentos: dist[], pred[], origem, destino e o contador de nós expandidos. |
-| 304 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 307 | `def _executarLacoDeDijkstra(` | Início da assinatura do laço principal do Dijkstra. |
-| 308 | `grafo: Grafo,` | Parâmetro: o grafo dirigido onde a busca acontece (só é lido, nunca alterado). |
-| 309 | `origem: str,` | Parâmetro: id (texto) do vértice de partida. |
-| 310 | `destino: str,` | Parâmetro: id (texto) do vértice de chegada. |
-| 311 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 312 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 313 | `predecessorDoVertice: PredecessoresPorVertice,` | Parâmetro: pred[], o dicionário id -> aresta usada para chegar no vértice. |
-| 314 | `) -> int:` | Fecha a assinatura: devolve um inteiro (nosExpandidos). |
-| 315–319 | `"""` | Docstring de `_executarLacoDeDijkstra` (texto de documentação, não executa): "Laço principal do Dijkstra; atualiza dist[] e pred[] no próprio dicionário." |
-| 320 | `# maduros: vértices cuja distância já é definitiva; a fila guarda c…` | Comentário (não executa): explica o passo que começa na linha 321. |
-| 321 | `verticesMaduros: Set[str] = set()` | Conjunto S dos slides (vértices maduros), começa vazio. Um `set` responde "está em S?" em tempo constante. |
-| 322 | `filaDePrioridade = _FilaDePrioridade()` | Cria a fila de prioridade vazia (classe definida mais abaixo). |
-| 323 | `# no início só a origem tem estimativa finita, então só ela entra n…` | Comentário (não executa): explica o passo que começa na linha 324. |
-| 324 | `filaDePrioridade.inserir(distanciaAteOVertice[origem], origem)` | Coloca a origem na fila com distância 0. |
-| 325 | `# repete enquanto houver candidato; fila vazia = nada mais é alcanç…` | Comentário (não executa): explica o passo que começa na linha 326. |
-| 326 | `while not filaDePrioridade.estaVazia():` | Laço principal: cada volta retira uma entrada da fila. |
-| 327–328 | `# seleciona o imaturo v que minimiza dist (a menor entrada da fila);` | Comentário (não executa): explica o passo que começa na linha 329. |
-| 329 | `distanciaDaEntrada, verticeAtual = filaDePrioridade.retirarMenor()` | Seleciona o candidato de menor distância: o imaturo v que minimiza dist. |
-| 330 | `if _entradaEstaDesatualizada(` | Pergunta se a entrada é velha (remoção preguiçosa)... |
-| 331 | `distanciaDaEntrada, verticeAtual, verticesMaduros, distanciaAteOVertice` | Argumentos: a distância gravada na entrada, o vértice, o conjunto S e dist[]. |
-| 332 | `):` | Fecha a condição do `if` aberta nas linhas anteriores; o bloco do `if` começa na linha seguinte. |
-| 333 | `continue` | ...se for velha, descarta e volta ao início do `while`. |
-| 334–336 | `# v é declarado maduro. Nos slides isso vem depois de examinar as a…` | Comentário (não executa): explica o passo que começa na linha 337. |
-| 337 | `verticesMaduros.add(verticeAtual)` | Declara v maduro: dist[v] é definitiva. É isso que nosExpandidos conta. |
-| 338 | `# o destino amadureceu: seu caminho mínimo já é conhecido, pode parar` | Comentário (não executa): explica o passo que começa na linha 339. |
-| 339 | `if verticeAtual == destino:` | Se quem amadureceu é o destino... |
-| 340 | `break` | ...sai do `while`: o caminho mínimo até ele já está em pred[]. |
-| 341–342 | `# examina cada aresta (v, w); se estava tensa e foi relaxada, w entra` | Comentário (não executa): explica o passo que começa na linha 343. |
-| 343 | `for arestaDeSaida in grafo.getAdjacencias(verticeAtual):` | Percorre as arestas que SAEM de v. A mão única é respeitada porque só existe aresta no sentido permitido. |
-| 344 | `if _tentarRelaxarAresta(` | Tenta relaxar a aresta (v, w)... |
-| 345 | `arestaDeSaida, criterio, distanciaAteOVertice, predecessorDoVertice` | Argumentos da chamada: a aresta, o critério, dist[] e pred[] (os dois dicionários podem ser alterados lá dentro). |
-| 346 | `):` | Fecha a condição do `if` aberta nas linhas anteriores; o bloco do `if` começa na linha seguinte. |
-| 347 | `verticeVizinho = arestaDeSaida.destino.id` | ...se relaxou, pega o id de w... |
-| 348 | `filaDePrioridade.inserir(distanciaAteOVertice[verticeVizinho], verticeVizinho)` | ...e insere w na fila com a nova estimativa. Uma entrada antiga de w pode continuar na fila; ela será descartada quando sair. |
-| 349 | `return len(verticesMaduros)` | Quantidade de vértices declarados maduros = nosExpandidos do Dijkstra. |
-| 352 | `def _entradaEstaDesatualizada(` | Início da assinatura do teste de entrada desatualizada. |
-| 353 | `distanciaDaEntrada: float,` | Parâmetro: a distância gravada na entrada quando ela foi inserida. |
-| 354 | `verticeAtual: str,` | Parâmetro: o vértice daquela entrada. |
-| 355 | `verticesMaduros: Set[str],` | Parâmetro: o conjunto S dos maduros. |
-| 356 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[] atual. |
-| 357 | `) -> bool:` | Fecha a assinatura: a função devolve `True` ou `False`. |
-| 358 | `"""Indica se uma entrada retirada da fila deve ser ignorada (remoção preguiçosa)."""` | Docstring de `_entradaEstaDesatualizada` (texto de documentação, não executa): "Indica se uma entrada retirada da fila deve ser ignorada (remoção preguiçosa)." |
-| 359–361 | `# remoção preguiçosa: o heapq não sabe "diminuir a chave" de uma en…` | Comentário (não executa): explica o passo que começa na linha 362. |
-| 362 | `if verticeAtual in verticesMaduros:` | Se o vértice já é maduro... |
-| 363 | `return True` | ...a entrada é velha: ignorar. |
-| 364 | `# ...ou se a distância da entrada é maior que dist atual (estimativ…` | Comentário (não executa): explica o passo que começa na linha 365. |
-| 365 | `return distanciaDaEntrada > distanciaAteOVertice[verticeAtual]` | Uma entrada com distância maior que a atual também é velha: houve melhora depois que ela entrou na fila. |
-| 368 | `class _FilaDePrioridade:` | Classe interna que esconde os detalhes do `heapq` (a lista e o contador) atrás de três operações: `inserir`, `retirarMenor` e `estaVazia`. |
-| 369–375 | `"""` | Docstring de `_FilaDePrioridade` (texto de documentação, não executa): "Fila de prioridade mínima (heap) dos vértices candidatos a maduro." |
-| 377 | `def __init__(self) -> None:` | Construtor: roda ao executar `_FilaDePrioridade()`. |
-| 378 | `# lista organizada como heap pelo heapq; menor entrada na posição 0` | Comentário (não executa): explica o passo que começa na linha 379. |
-| 379 | `self._entradas: List[EntradaDaFila] = []` | A lista que o `heapq` organiza como heap (menor entrada na posição 0). |
-| 380 | `self._proximoContadorDeDesempate: int = 0` | Contador de desempate, começa em 0. |
-| 382 | `def inserir(self, distanciaEstimada: float, idDoVertice: str) -> None:` | Método que insere um vértice com uma distância estimada. |
-| 383 | `"""Coloca o vértice na fila com a distância estimada atual."""` | Docstring de `inserir` (texto de documentação, não executa): "Coloca o vértice na fila com a distância estimada atual." |
-| 384–385 | `# heappush mantém a propriedade de heap em O(log n); depois avança o` | Comentário (não executa): explica o passo que começa na linha 386. |
-| 386 | `entrada: EntradaDaFila = (distanciaEstimada, self._proximoContadorDeDesempate, idDoVertice)` | Monta a tupla (distância, contador, id). |
-| 387 | `heapq.heappush(self._entradas, entrada)` | Insere mantendo a propriedade de heap, em O(log n). |
-| 388 | `self._proximoContadorDeDesempate += 1` | Avança o contador: a próxima inserção terá desempate maior e, com a mesma distância, sairá depois. |
-| 390 | `def retirarMenor(self) -> Tuple[float, str]:` | Método que retira a menor entrada. |
-| 391 | `"""Remove a entrada de menor distância e devolve (distância, id do vértice)."""` | Docstring de `retirarMenor` (texto de documentação, não executa): "Remove a entrada de menor distância e devolve (distância, id do vértice)." |
-| 392 | `# heappop tira a menor entrada em O(log n); o contador só servia pa…` | Comentário (não executa): explica o passo que começa na linha 393. |
-| 393 | `distanciaDaEntrada, _contadorDeDesempate, idDoVertice = heapq.heappop(self._entradas)` | `heappop` remove e devolve a menor tupla, em O(log n); a linha desempacota as três partes. O `_` no nome do contador indica que ele não é usado depois. |
-| 394 | `return distanciaDaEntrada, idDoVertice` | Devolve só o que o laço precisa: distância e id. |
-| 396 | `def estaVazia(self) -> bool:` | Método que diz se a fila acabou. |
-| 397 | `"""Indica se não há mais entradas na fila."""` | Docstring de `estaVazia` (texto de documentação, não executa): "Indica se não há mais entradas na fila." |
-| 398 | `# lista vazia: nenhum candidato restante` | Comentário (não executa): explica o passo que começa na linha 399. |
-| 399 | `return len(self._entradas) == 0` | Verdadeiro quando a lista não tem nenhuma entrada. |
-| 402–404 | `# Algoritmo de Bellman-Ford (slides "Caminho Mínimo (2)")` | Título de seção (comentário, não executa). |
-| 407 | `def calcularRotaBellmanFord(` | Função pública do Bellman-Ford, com a mesma assinatura do Dijkstra. |
-| 408 | `grafo: Grafo,` | Parâmetro: o grafo dirigido onde a busca acontece (só é lido, nunca alterado). |
-| 409 | `origem: str,` | Parâmetro: id (texto) do vértice de partida. |
-| 410 | `destino: str,` | Parâmetro: id (texto) do vértice de chegada. |
-| 411 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 412 | `) -> ResultadoRota:` | Fecha a assinatura: a função devolve um `ResultadoRota`. |
-| 413–443 | `"""` | Docstring de `calcularRotaBellmanFord` (texto de documentação, não executa): "Calcula a rota de menor custo de origem até destino pelo algoritmo de Bellman-Ford." |
-| 444 | `# 1) mesma validação do Dijkstra; inválido ou origem = destino já s…` | Comentário (não executa): explica o passo que começa na linha 445. |
-| 445 | `criterioNormalizado = _tentarNormalizarCriterio(criterio)` | Passo 1: igual ao Dijkstra (linha 289). |
-| 446 | `resultadoAntecipado = _verificarSolicitacao(grafo, origem, destino, criterioNormalizado)` | Igual à linha 290. |
-| 447 | `if resultadoAntecipado is not None:` | Igual à linha 291. |
-| 448 | `return resultadoAntecipado` | Igual à linha 292. |
-| 449–450 | `# 2) mesma inicialização; a lista de ids é montada uma vez e reapro…` | Comentário (não executa): explica o passo que começa na linha 451. |
-| 451 | `idsDosVertices = _listarIdsDosVertices(grafo)` | Passo 2: guarda a lista de ids numa variável. O Bellman-Ford percorre essa lista em toda iteração, e ela é montada uma única vez. |
-| 452 | `distanciaAteOVertice, predecessorDoVertice = _inicializarEstimativas(idsDosVertices, origem)` | Mesma inicialização do Dijkstra. |
-| 453 | `# 3) até \|V\| - 1 iterações relaxando as arestas tensas` | Comentário (não executa): explica o passo que começa na linha 454. |
-| 454 | `nosExpandidos, ultimaIteracaoRelaxou = _executarIteracoesDeBellmanFord(` | Passo 3: roda as iterações e recebe o contador e se a última iteração ainda relaxou alguma aresta. |
-| 455 | `grafo, idsDosVertices, criterioNormalizado, distanciaAteOVertice, predecessorDoVertice` | Argumentos: grafo, lista de ids, critério já normalizado, dist[] e pred[]. |
-| 456 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 457–458 | `# 4) se parou antes do limite, nenhuma aresta está tensa e não há c…` | Comentário (não executa): explica o passo que começa na linha 459. |
-| 459 | `if ultimaIteracaoRelaxou:` | Passo 4: só é `True` se rodaram todas as \|V\| - 1 iterações e a última ainda relaxou; só nesse caso pode haver ciclo negativo. |
-| 460–461 | `# aresta ainda tensa = ciclo de custo negativo alcançável: não existe` | Comentário (não executa): explica o passo que começa na linha 462. |
-| 462 | `if _existeArestaTensa(grafo, idsDosVertices, criterioNormalizado, distanciaAteOVertice):` | Passada extra: ainda existe alguma aresta tensa? |
-| 463 | `return ResultadoRota.invalida()` | Sim: ciclo de custo negativo alcançável, não existe caminho mínimo. Devolve 'invalida' (o construtor não aceita mensagem). |
-| 464 | `# 5) igual ao Dijkstra: reconstrói o caminho por pred[] e monta o R…` | Comentário (não executa): explica o passo que começa na linha 465. |
-| 465 | `return _montarResultado(` | Passo 5: igual ao Dijkstra. |
-| 466 | `distanciaAteOVertice, predecessorDoVertice, origem, destino, nosExpandidos` | Argumentos: dist[], pred[], origem, destino e o contador de nós expandidos. |
-| 467 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 470 | `def _executarIteracoesDeBellmanFord(` | Início da assinatura do laço de iterações do Bellman-Ford. |
-| 471 | `grafo: Grafo,` | Parâmetro: o grafo dirigido onde a busca acontece (só é lido, nunca alterado). |
-| 472 | `idsDosVertices: List[str],` | Parâmetro: lista com o id de todos os vértices, na ordem de inserção no grafo. |
-| 473 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 474 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 475 | `predecessorDoVertice: PredecessoresPorVertice,` | Parâmetro: pred[], o dicionário id -> aresta usada para chegar no vértice. |
-| 476 | `) -> Tuple[int, bool]:` | Fecha a assinatura: devolve uma tupla (nosExpandidos somado em todas as iterações, se a última iteração executada ainda relaxou alguma aresta). |
-| 477–482 | `"""` | Docstring de `_executarIteracoesDeBellmanFord` (texto de documentação, não executa): "Repete até \|V\| - 1 iterações, parando antes se uma iteração não relaxar nada." |
-| 483–484 | `# um caminho mínimo sem ciclo tem no máximo \|V\| - 1 arestas, e ao f…` | Comentário (não executa): explica o passo que começa na linha 485. |
-| 485 | `quantidadeMaximaDeIteracoes = len(idsDosVertices) - 1` | \|V\| - 1: o limite de iterações dos slides. |
-| 486 | `# contadores: nós expandidos somados e se a iteração mais recente r…` | Comentário (não executa): explica o passo que começa na linha 487. |
-| 487 | `nosExpandidos = 0` | Soma dos vértices examinados em todas as iterações. |
-| 488 | `houveRelaxacao = False` | Valor inicial; cada iteração sobrescreve. |
-| 489 | `for _numeroDaIteracao in range(quantidadeMaximaDeIteracoes):` | Repete no máximo \|V\| - 1 vezes. O número da iteração não é usado (por isso o `_`). |
-| 490 | `# uma iteração = examinar todas as arestas e relaxar as tensas` | Comentário (não executa): explica o passo que começa na linha 491. |
-| 491 | `verticesExaminados, houveRelaxacao = _executarUmaIteracaoDeBellmanFord(` | Executa uma iteração completa e desempacota (vértices examinados, se relaxou algo)... |
-| 492 | `grafo, idsDosVertices, criterio, distanciaAteOVertice, predecessorDoVertice` | Argumentos: grafo, lista de ids, critério, dist[] e pred[]. |
-| 493 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
-| 494 | `nosExpandidos += verticesExaminados` | Acumula os vértices examinados nesta iteração. |
-| 495–496 | `# término antecipado: iteração sem relaxação deixa dist[] igual, e as` | Comentário (não executa): explica o passo que começa na linha 497. |
-| 497 | `if not houveRelaxacao:` | Se a iteração não relaxou nenhuma aresta... |
-| 498 | `break` | ...término antecipado: sai do `for`. |
-| 499 | `return nosExpandidos, houveRelaxacao` | Devolve a soma e o resultado da última iteração executada. |
-| 502 | `def _executarUmaIteracaoDeBellmanFord(` | Início da assinatura de uma iteração do Bellman-Ford. |
-| 503 | `grafo: Grafo,` | Parâmetro: o grafo dirigido onde a busca acontece (só é lido, nunca alterado). |
-| 504 | `idsDosVertices: List[str],` | Parâmetro: lista com o id de todos os vértices, na ordem de inserção no grafo. |
-| 505 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 506 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 507 | `predecessorDoVertice: PredecessoresPorVertice,` | Parâmetro: pred[], o dicionário id -> aresta usada para chegar no vértice. |
-| 508 | `) -> Tuple[int, bool]:` | Fecha a assinatura: devolve uma tupla (quantidade de vértices examinados, se alguma aresta foi relaxada). |
-| 509–513 | `"""` | Docstring de `_executarUmaIteracaoDeBellmanFord` (texto de documentação, não executa): "Examina as arestas de saída de cada vértice alcançado e relaxa as tensas." |
-| 514 | `# contadores desta iteração` | Comentário (não executa): explica o passo que começa na linha 515. |
-| 515 | `verticesExaminados = 0` | Contador de vértices examinados nesta iteração. |
-| 516 | `houveRelaxacao = False` | Vira `True` se alguma aresta for relaxada. |
-| 517–518 | `# percorre os vértices na ordem de inserção; uma melhora feita nesta` | Comentário (não executa): explica o passo que começa na linha 519. |
-| 519 | `for verticeAtual in idsDosVertices:` | Percorre todos os vértices na ordem de inserção. |
-| 520–521 | `# dist infinita: infinito + peso continua infinito e não torna nenhuma` | Comentário (não executa): explica o passo que começa na linha 522. |
-| 522 | `if not _verticeFoiAlcancado(distanciaAteOVertice, verticeAtual):` | Se o vértice ainda tem dist infinita... |
-| 523 | `continue` | ...é pulado e não conta como expandido. |
-| 524 | `verticesExaminados += 1` | Conta este vértice como expandido nesta iteração. |
-| 525 | `# examina cada aresta de saída e relaxa as tensas, como no Dijkstra` | Comentário (não executa): explica o passo que começa na linha 526. |
-| 526 | `for arestaDeSaida in grafo.getAdjacencias(verticeAtual):` | Percorre as arestas de saída de v. |
-| 527 | `if _tentarRelaxarAresta(` | Relaxa a aresta se ela estiver tensa... |
-| 528 | `arestaDeSaida, criterio, distanciaAteOVertice, predecessorDoVertice` | Argumentos da chamada: a aresta, o critério, dist[] e pred[] (os dois dicionários podem ser alterados lá dentro). |
-| 529 | `):` | Fecha a condição do `if` aberta nas linhas anteriores; o bloco do `if` começa na linha seguinte. |
-| 530 | `houveRelaxacao = True` | ...e registra que a iteração mudou dist[]. |
-| 531 | `return verticesExaminados, houveRelaxacao` | Devolve os dois resultados da iteração. |
-| 534 | `def _existeArestaTensa(` | Início da assinatura da passada extra (detecção de ciclo negativo). |
-| 535 | `grafo: Grafo,` | Parâmetro: o grafo dirigido onde a busca acontece (só é lido, nunca alterado). |
-| 536 | `idsDosVertices: List[str],` | Parâmetro: lista com o id de todos os vértices, na ordem de inserção no grafo. |
-| 537 | `criterio: str,` | Parâmetro: o critério ('distancia', 'tempo' ou 'custo'); decide qual peso de cada aresta é usado. |
-| 538 | `distanciaAteOVertice: DistanciasPorVertice,` | Parâmetro: dist[], o dicionário id -> melhor custo conhecido. |
-| 539 | `) -> bool:` | Fecha a assinatura: a função devolve `True` ou `False`. |
-| 540 | `"""Passada extra do Bellman-Ford: procura uma aresta ainda tensa, sem relaxar nada."""` | Docstring de `_existeArestaTensa` (texto de documentação, não executa): "Passada extra do Bellman-Ford: procura uma aresta ainda tensa, sem relaxar nada." |
-| 541 | `# mesma varredura de uma iteração, mas só pergunta se a aresta está…` | Comentário (não executa): explica o passo que começa na linha 542. |
-| 542 | `for verticeAtual in idsDosVertices:` | Mesma varredura de uma iteração. |
-| 543 | `# vértice não alcançado não tem aresta tensa (mesmo motivo da itera…` | Comentário (não executa): explica o passo que começa na linha 544. |
-| 544 | `if not _verticeFoiAlcancado(distanciaAteOVertice, verticeAtual):` | Se o vértice não foi alcançado... |
-| 545 | `continue` | ...é pulado. |
-| 546 | `# basta uma aresta tensa para provar que existe ciclo negativo alca…` | Comentário (não executa): explica o passo que começa na linha 547. |
-| 547 | `for arestaDeSaida in grafo.getAdjacencias(verticeAtual):` | Percorre as arestas de saída de v. |
-| 548 | `if _arestaEstaTensa(arestaDeSaida, criterio, distanciaAteOVertice):` | Só testa se a aresta está tensa, sem relaxar: a passada extra não altera dist[]. |
-| 549 | `return True` | Achou uma: existe ciclo negativo alcançável. |
-| 550 | `return False` | Nenhuma aresta tensa: dist[] está correta. |
+| 1–15 | `"""` | Docstring do módulo (documentação, não executa): "Caminho mínimo no grafo viário: Método de Dijkstra e algoritmo de Bellman-Ford." |
+| 17 | `import heapq` | Importa o `heapq`, da biblioteca padrão: funções que tratam uma lista comum como heap mínimo (fila de prioridade). Só o Dijkstra usa. |
+| 18 | `from typing import Dict, List, Optional, Set, Tuple` | Tipos das anotações: `Dict`, `List`, `Optional` (valor ou `None`), `Set` e `Tuple`. Anotações não mudam a execução; documentam o que entra e sai. |
+| 20 | `from grafo import Aresta, Grafo, ResultadoRota, normalizarCriterio` | Reaproveita o grafo.py: `Aresta` e `Grafo` (anotações e leitura), `ResultadoRota` (o que devolvemos) e `normalizarCriterio` (valida o critério). |
+| 22 | `# "infinito" dos slides: dist[] de quem ainda não foi alcançado` | Comentário sobre a linha 23 (não executa). |
+| 23 | `DISTANCIA_INFINITA: float = float("inf")` | O infinito do Python. Qualquer número finito é menor que ele, então serve como estimativa inicial de "nenhum caminho conhecido". |
+| 25 | `# dist[]: id do vértice -> melhor custo conhecido desde a origem` | Comentário sobre a linha 26 (não executa). |
+| 26 | `DistanciasPorVertice = Dict[str, float]` | Apelido de tipo para dist[]: dicionário id (texto) -> custo (float). Só encurta as assinaturas. |
+| 28 | `# pred[]: id do vértice -> aresta usada para chegar nele (None = indefinido)` | Comentário sobre a linha 29 (não executa). |
+| 29 | `PredecessoresPorVertice = Dict[str, Optional[Aresta]]` | Apelido de tipo para pred[]: id -> `Aresta` ou `None`. Guarda a aresta, e não o vértice, para distinguir arestas paralelas. |
+| 32–34 | `# Funções compartilhadas pelos dois algoritmos` | Título de seção (comentário, não executa). |
+| 37 | `# Responde sem buscar os pedidos inválidos e o de origem = destino; None = a busca deve rodar.` | Frase que resume a função `_verificarSolicitacao` (não executa). |
+| 38 | `def _verificarSolicitacao(` | Define a função que resolve os pedidos que não precisam de busca. O `_` no início indica uso interno do módulo. |
+| 39 | `grafo: Grafo, origem: str, destino: str, criterio: str` | Parâmetros: o grafo, os ids (texto) da origem e do destino e o critério como foi digitado. |
+| 40 | `) -> Optional[ResultadoRota]:` | Devolve um `ResultadoRota` pronto ou `None` ("pode buscar"). |
+| 41 | `try:` | Abre um bloco protegido: se a linha seguinte lançar `ValueError`, a execução pula para o `except`. |
+| 42 | `normalizarCriterio(criterio)` | Só valida: tira espaços, passa para minúsculas e confere se é 'distancia', 'tempo' ou 'custo'. O valor limpo não precisa ser guardado, porque `getPeso` normaliza o critério sozinho. |
+| 43 | `except ValueError:` | Captura só `ValueError` (critério desconhecido, vazio, `None` ou número). |
+| 44 | `return ResultadoRota.invalida()` | Pedido inválido: resultado 'invalida', sem caminho e sem totais. |
+| 45 | `if not grafo.existeVertice(origem) or not grafo.existeVertice(destino):` | Basta um dos dois não existir. Sem esta checagem, `getAdjacencias` devolveria lista vazia e o pedido sairia, errado, como 'inalcancavel'. |
+| 46 | `return ResultadoRota.invalida()` | Pedido inválido: resultado 'invalida', sem caminho e sem totais. |
+| 47 | `if origem == destino:` | Caso trivial: partida e chegada são o mesmo vértice. |
+| 48 | `return ResultadoRota.aPartirDoCaminho([], nosExpandidos=0)` | Rota 'encontrada' com caminho vazio: soma de zero arestas, então distância, tempo e custo valem 0, e nosExpandidos = 0. |
+| 49 | `return None` | Nenhum caso especial: quem chamou segue para a busca. |
+| 52 | `# Cria dist[] (infinito, exceto a origem = 0) e pred[] (todos indefinidos), como nos slides.` | Frase que resume a função `_inicializarEstimativas` (não executa). |
+| 53 | `def _inicializarEstimativas(` | Define a inicialização de dist[] e pred[], igual nos dois algoritmos. |
+| 54 | `grafo: Grafo, origem: str` | Parâmetros: o grafo (de onde saem os ids) e a origem, raiz da busca. |
+| 55 | `) -> Tuple[DistanciasPorVertice, PredecessoresPorVertice]:` | Devolve as duas estruturas juntas numa tupla (dist, pred). |
+| 56 | `distanciaAteOVertice: DistanciasPorVertice = dict.fromkeys(grafo.vertices, DISTANCIA_INFINITA)` | `dict.fromkeys` cria um dicionário com uma chave por id de `grafo.vertices` (na ordem de inserção) e o mesmo valor em todas: infinito. Custo O(V). |
+| 57 | `predecessorDoVertice: PredecessoresPorVertice = dict.fromkeys(grafo.vertices, None)` | Mesma coisa para pred[]: todo predecessor começa indefinido (`None`). |
+| 58 | `distanciaAteOVertice[origem] = 0.0` | Sobrescreve a origem: chegar nela custa zero. |
+| 59 | `return distanciaAteOVertice, predecessorDoVertice` | Devolve a tupla; quem chama desempacota em duas variáveis. |
+| 62 | `# Relaxa a aresta (v, w) se ela estiver tensa (dist[v] + d(v, w) < dist[w]); devolve se relaxou.` | Frase que resume a função `_relaxarSeTensa` (não executa). |
+| 63 | `def _relaxarSeTensa(` | Define a relaxação dos slides, usada pelos dois algoritmos. |
+| 64 | `arestaDeSaida: Aresta, criterio: str,` | Parâmetros: a aresta (v, w) examinada e o critério, que decide qual peso dela vale. |
+| 65 | `distanciaAteOVertice: DistanciasPorVertice, predecessorDoVertice: PredecessoresPorVertice,` | Parâmetros: dist[] e pred[]. Os dois dicionários são alterados aqui dentro (o Python passa a referência do objeto, não uma cópia). |
+| 66 | `) -> bool:` | Devolve se houve relaxação. O Dijkstra usa isso para inserir w no heap; o Bellman-Ford, para saber se a iteração mudou algo. |
+| 67 | `novaDistancia = distanciaAteOVertice[arestaDeSaida.origem.id] + arestaDeSaida.getPeso(criterio)` | dist[v] + d(v, w), calculado uma única vez. `arestaDeSaida.origem.id` é o id de v; `getPeso` devolve metros, segundos ou reais conforme o critério. |
+| 68 | `verticeVizinho = arestaDeSaida.destino.id` | O id de w, o destino da aresta, que é a chave usada três vezes a seguir. |
+| 69 | `if novaDistancia < distanciaAteOVertice[verticeVizinho]:` | Definição de aresta tensa dos slides: dist[v] + d(v, w) < dist[w]. O `<` estrito é a regra de empate: custo igual não conta como melhora. Isso também impede que arestas de peso zero formem ciclos em pred[]. |
+| 70 | `distanciaAteOVertice[verticeVizinho] = novaDistancia` | Relaxação, parte 1: dist[w] recebe a nova estimativa (o mesmo valor já calculado). |
+| 71 | `predecessorDoVertice[verticeVizinho] = arestaDeSaida` | Relaxação, parte 2: pred[w] recebe a própria aresta usada. Com arestas paralelas, é isso que diz qual delas foi escolhida. |
+| 72 | `return True` | Informa que dist[w] e pred[w] mudaram. |
+| 73 | `return False` | Aresta não tensa: nada mudou. |
+| 76 | `# Segue pred[] do destino até a origem e devolve as arestas na ordem do percurso.` | Frase que resume a função `_reconstruirCaminho` (não executa). |
+| 77 | `def _reconstruirCaminho(` | Define a reconstrução do caminho a partir de pred[]. |
+| 78 | `predecessorDoVertice: PredecessoresPorVertice, origem: str, destino: str` | Parâmetros: pred[] final, a origem (onde a caminhada termina) e o destino (onde ela começa). |
+| 79 | `) -> List[Aresta]:` | Devolve a lista de arestas na ordem do percurso. |
+| 80 | `caminho: List[Aresta] = []` | Lista onde as arestas são coletadas, de trás para frente. |
+| 81 | `verticeDoCaminho = destino` | A caminhada começa no destino. |
+| 82 | `while verticeDoCaminho != origem:` | Repete até chegar à origem (a origem não tem predecessor). |
+| 83 | `arestaUsada = predecessorDoVertice[verticeDoCaminho]` | Lê em pred[] a aresta usada para chegar neste vértice. |
+| 84 | `caminho.append(arestaUsada)` | Guarda a aresta na lista. |
+| 85 | `verticeDoCaminho = arestaUsada.origem.id` | Volta um passo: o próximo vértice é a origem dessa aresta. |
+| 86 | `caminho.reverse()` | Inverte a lista no lugar: agora ela vai da origem ao destino. |
+| 87 | `return caminho` | Devolve o caminho pronto. |
+| 90 | `# Transforma dist[] e pred[] finais em ResultadoRota 'encontrada' ou 'inalcancavel'.` | Frase que resume a função `_montarResultado` (não executa). |
+| 91 | `def _montarResultado(` | Define a montagem do resultado final, igual nos dois algoritmos. |
+| 92 | `distanciaAteOVertice: DistanciasPorVertice, predecessorDoVertice: PredecessoresPorVertice,` | Parâmetros: dist[] e pred[] finais da busca. |
+| 93 | `origem: str, destino: str, nosExpandidos: int,` | Parâmetros: origem, destino e o contador de nós expandidos (cada algoritmo tem a sua definição). |
+| 94 | `) -> ResultadoRota:` | Devolve o `ResultadoRota`. |
+| 95 | `if distanciaAteOVertice[destino] == DISTANCIA_INFINITA:` | dist[destino] ainda infinita: a busca terminou sem chegar ao destino. |
+| 96 | `return ResultadoRota.inalcancavel(nosExpandidos)` | Estado próprio 'inalcancavel': pedido válido, sem caminho. Guarda quantos nós foram expandidos até desistir. |
+| 97 | `caminho = _reconstruirCaminho(predecessorDoVertice, origem, destino)` | Destino alcançado: reconstrói o caminho por pred[]. |
+| 98 | `return ResultadoRota.aPartirDoCaminho(caminho, nosExpandidos)` | Resultado 'encontrada'. Os totais (m, s, R$) são somados com `math.fsum` a partir das arestas do caminho, e o `ResultadoRota` ainda confere que o caminho é contínuo. |
+| 101–103 | `# Método de Dijkstra (slides "Caminho Mínimo (1)")` | Título de seção (comentário, não executa). |
+| 106 | `# Dijkstra: amadurece os vértices em ordem de dist (heap) e para quando o destino amadurece.` | Frase que resume a função `calcularRotaDijkstra` (não executa). |
+| 107 | `def calcularRotaDijkstra(` | Função pública do Dijkstra (sem `_`): é a que app.py e os testes chamam. |
+| 108 | `grafo: Grafo, origem: str, destino: str, criterio: str` | Parâmetros: o grafo dirigido, os ids da origem e do destino e o critério ('distancia', 'tempo' ou 'custo'). |
+| 109 | `) -> ResultadoRota:` | Devolve um `ResultadoRota`. |
+| 110–124 | `"""` | Docstring de `calcularRotaDijkstra` (documentação, não executa): "Recebe os ids da origem e do destino e o critério; exige pesos não negativos." |
+| 125 | `resultadoAntecipado = _verificarSolicitacao(grafo, origem, destino, criterio)` | Passo 1: confere critério, existência dos vértices e origem = destino. |
+| 126 | `if resultadoAntecipado is not None:` | Se já existe uma resposta... |
+| 127 | `return resultadoAntecipado` | ...devolve sem rodar a busca. |
+| 128 | `distanciaAteOVertice, predecessorDoVertice = _inicializarEstimativas(grafo, origem)` | Passo 2: cria dist[] e pred[] e desempacota a tupla em duas variáveis. |
+| 129 | `verticesMaduros: Set[str] = set()` | Passo 3: conjunto S dos slides (vértices maduros), começa vazio. Um `set` responde "está em S?" em tempo constante. |
+| 130 | `filaDePrioridade: List[Tuple[float, int, str]] = [(0.0, 0, origem)]` | O heap é uma lista comum de tuplas (distância, desempate, id). Começa só com a origem: distância 0 e desempate 0. Uma lista de um elemento já é um heap válido. |
+| 131 | `proximoDesempate: int = 1` | Próximo número de desempate. Ele cresce a cada inserção: o Python compara tuplas elemento a elemento, então com distâncias iguais sai primeiro quem entrou antes, e os ids nunca chegam a ser comparados. |
+| 132 | `while filaDePrioridade:` | Laço principal: repete enquanto houver candidato. Lista vazia é falsa em Python; fila vazia = nada mais é alcançável. |
+| 133 | `distanciaDaEntrada, _desempateDaEntrada, verticeAtual = heapq.heappop(filaDePrioridade)` | `heappop` remove e devolve a menor tupla em O(log n): o imaturo v de menor dist. O `_` no nome do desempate indica que ele não é usado depois. |
+| 134 | `if (verticeAtual in verticesMaduros` | Remoção preguiçosa: a entrada é velha se v já está maduro... |
+| 135 | `or distanciaDaEntrada > distanciaAteOVertice[verticeAtual]):` | ...ou se a distância gravada nela é maior que dist[v] atual (houve melhora depois que ela entrou). O `heapq` não sabe diminuir a chave de uma entrada, então a velha fica na fila e é ignorada aqui. |
+| 136 | `continue` | Descarta a entrada velha e volta ao início do `while`. |
+| 137 | `verticesMaduros.add(verticeAtual)` | Declara v maduro: dist[v] é definitiva. É isso que nosExpandidos conta. |
+| 138 | `if verticeAtual == destino:` | Se quem amadureceu é o destino... |
+| 139 | `break` | ...sai do `while`: o caminho mínimo até ele já está em pred[]. |
+| 140 | `for arestaDeSaida in grafo.getAdjacencias(verticeAtual):` | Percorre as arestas que SAEM de v. A mão única é respeitada porque só existe aresta no sentido permitido. |
+| 141 | `if _relaxarSeTensa(arestaDeSaida, criterio, distanciaAteOVertice, predecessorDoVertice):` | Relaxa a aresta (v, w) se ela estiver tensa; dist[] e pred[] são alterados lá dentro. |
+| 142 | `verticeVizinho = arestaDeSaida.destino.id` | Relaxou: pega o id de w... |
+| 143 | `entrada = (distanciaAteOVertice[verticeVizinho], proximoDesempate, verticeVizinho)` | ...monta a entrada (nova dist[w], desempate, id de w)... |
+| 144 | `heapq.heappush(filaDePrioridade, entrada)` | ...e insere no heap em O(log n). Uma entrada antiga de w pode continuar na fila; ela será descartada quando sair. |
+| 145 | `proximoDesempate += 1` | Avança o desempate para a próxima inserção. |
+| 146 | `return _montarResultado(` | Passo 4: transforma dist[] e pred[] no `ResultadoRota`... |
+| 147 | `distanciaAteOVertice, predecessorDoVertice, origem, destino, len(verticesMaduros)` | ...com nosExpandidos = quantidade de vértices maduros (`len` do conjunto S). |
+| 148 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
+| 151–153 | `# Algoritmo de Bellman-Ford (slides "Caminho Mínimo (2)")` | Título de seção (comentário, não executa). |
+| 156 | `# Bellman-Ford: até \|V\| - 1 iterações de relaxação e uma passada extra que detecta ciclo negativo.` | Frase que resume a função `calcularRotaBellmanFord` (não executa). |
+| 157 | `def calcularRotaBellmanFord(` | Função pública do Bellman-Ford, com a mesma assinatura do Dijkstra. |
+| 158 | `grafo: Grafo, origem: str, destino: str, criterio: str` | Mesmos parâmetros do Dijkstra. |
+| 159 | `) -> ResultadoRota:` | Devolve um `ResultadoRota`. |
+| 160–174 | `"""` | Docstring de `calcularRotaBellmanFord` (documentação, não executa): "Mesma entrada e saída do Dijkstra, mas aceita peso negativo e devolve 'invalida' se houver" |
+| 175 | `resultadoAntecipado = _verificarSolicitacao(grafo, origem, destino, criterio)` | Passo 1: a mesma validação do Dijkstra. |
+| 176 | `if resultadoAntecipado is not None:` | Se já existe uma resposta... |
+| 177 | `return resultadoAntecipado` | ...devolve sem rodar a busca. |
+| 178 | `distanciaAteOVertice, predecessorDoVertice = _inicializarEstimativas(grafo, origem)` | Passo 2: a mesma inicialização do Dijkstra. |
+| 179 | `nosExpandidos: int = 0` | Passo 3: soma dos vértices examinados em todas as iterações. |
+| 180 | `houveRelaxacao: bool = False` | Se a iteração mais recente relaxou alguma aresta; cada iteração sobrescreve. |
+| 181 | `for _numeroDaIteracao in range(len(grafo.vertices) - 1):` | Repete no máximo \|V\| - 1 vezes, o limite dos slides. O número da iteração não é usado (por isso o `_`). |
+| 182 | `verticesExaminados, houveRelaxacao = _executarIteracaoDeBellmanFord(` | Executa uma iteração completa e desempacota (vértices examinados, se relaxou algo)... |
+| 183 | `grafo, criterio, distanciaAteOVertice, predecessorDoVertice` | Argumentos da iteração: grafo, critério, dist[] e pred[]. |
+| 184 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
+| 185 | `nosExpandidos += verticesExaminados` | Acumula os vértices examinados nesta iteração. |
+| 186 | `if not houveRelaxacao:` | Se a iteração não relaxou nenhuma aresta... |
+| 187 | `break` | ...término antecipado: sai do `for`. |
+| 188 | `if houveRelaxacao:` | Passo 4: só é `True` se rodaram as \|V\| - 1 iterações e a última ainda relaxou; só nesse caso pode haver ciclo negativo. |
+| 189 | `_verticesDaPassadaExtra, aindaHaArestaTensa = _executarIteracaoDeBellmanFord(` | Passada extra: mais uma iteração. Se ela ainda relaxar, alguma aresta continua tensa depois de \|V\| - 1 iterações. Os vértices dela não entram em nosExpandidos (`_`). |
+| 190 | `grafo, criterio, distanciaAteOVertice, predecessorDoVertice` | Argumentos da iteração: grafo, critério, dist[] e pred[]. |
+| 191 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
+| 192 | `if aindaHaArestaTensa:` | Ainda havia aresta tensa... |
+| 193 | `return ResultadoRota.invalida()` | ...ciclo de custo negativo alcançável: não existe caminho mínimo, o pedido é 'invalida'. |
+| 194 | `return _montarResultado(` | Passo 5: igual ao Dijkstra... |
+| 195 | `distanciaAteOVertice, predecessorDoVertice, origem, destino, nosExpandidos` | ...com o nosExpandidos somado nas iterações. |
+| 196 | `)` | Fecha os parênteses da chamada aberta nas linhas anteriores. |
+| 199 | `# Relaxa as arestas que saem de cada vértice alcançado; devolve (examinados, houve relaxação).` | Frase que resume a função `_executarIteracaoDeBellmanFord` (não executa). |
+| 200 | `def _executarIteracaoDeBellmanFord(` | Define uma iteração do Bellman-Ford, usada no laço e na passada extra. |
+| 201 | `grafo: Grafo, criterio: str,` | Parâmetros: o grafo e o critério. |
+| 202 | `distanciaAteOVertice: DistanciasPorVertice, predecessorDoVertice: PredecessoresPorVertice,` | Parâmetros: dist[] e pred[], alterados pela relaxação. |
+| 203 | `) -> Tuple[int, bool]:` | Devolve a tupla (vértices examinados, se alguma aresta foi relaxada). |
+| 204 | `verticesExaminados: int = 0` | Contador de vértices examinados nesta iteração. |
+| 205 | `houveRelaxacao: bool = False` | Vira `True` se alguma aresta for relaxada. |
+| 206 | `for verticeAtual in grafo.vertices:` | Percorre os ids de todos os vértices na ordem de inserção (percorrer um dicionário dá as chaves). |
+| 207 | `if distanciaAteOVertice[verticeAtual] == DISTANCIA_INFINITA:` | Vértice ainda não alcançado: infinito + peso continua infinito e não deixa nenhuma aresta tensa... |
+| 208 | `continue` | ...então é pulado e não conta como expandido. |
+| 209 | `verticesExaminados += 1` | Conta este vértice como expandido nesta iteração. |
+| 210 | `for arestaDeSaida in grafo.getAdjacencias(verticeAtual):` | Percorre as arestas de saída de v. |
+| 211 | `if _relaxarSeTensa(arestaDeSaida, criterio, distanciaAteOVertice, predecessorDoVertice):` | Relaxa a aresta se ela estiver tensa (a mesma função do Dijkstra)... |
+| 212 | `houveRelaxacao = True` | ...e registra que a iteração mudou dist[]. |
+| 213 | `return verticesExaminados, houveRelaxacao` | Devolve os dois resultados da iteração. |
 <!-- tabela-linha-a-linha:fim -->
 
 ## 3. Exemplo: Dijkstra no grafo dos slides
@@ -478,9 +294,9 @@ Resultado final: **c = 0, e = 1, b = 2, d = 3, f = 4, a = 5**. Rota até a: `c�
 
 Pontos que valem comentar:
 
-- **Passo 4, remoção preguiçosa**: f melhora de 9 para 4. O `heapq` não sabe diminuir a chave da entrada `(9, #4, f)`, então f é inserido de novo como `(4, #6, f)`. A entrada velha fica na fila. Se ela saísse, seria ignorada porque f já estaria maduro (`_entradaEstaDesatualizada`, linhas 362–365). No passo 6 a busca para antes disso, e ela sobra na fila.
+- **Passo 4, remoção preguiçosa**: f melhora de 9 para 4. O `heapq` não sabe diminuir a chave da entrada `(9, #4, f)`, então f é inserido de novo como `(4, #6, f)`. A entrada velha fica na fila. Se ela saísse, seria ignorada porque f já estaria maduro (remoção preguiçosa, linhas 134–136). No passo 6 a busca para antes disso, e ela sobra na fila.
 - **Passo 5**: f→a está no corte, mas `dist[f] + 2 = 6` não é menor que `dist[a] = 5`. A aresta não está tensa e pred[a] continua `c→a`.
-- **Passo 6**: a é o destino e a busca para na linha 340, sem examinar a→b. Nos slides as arestas de v são examinadas antes de declarar v maduro. No código, v é declarado maduro primeiro (linha 337). Com pesos não negativos dá no mesmo, porque nenhuma aresta de v consegue melhorar `dist[v]`. A vantagem é poder parar no destino sem trabalho extra.
+- **Passo 6**: a é o destino e a busca para na linha 139, sem examinar a→b. Nos slides as arestas de v são examinadas antes de declarar v maduro. No código, v é declarado maduro primeiro (linha 137). Com pesos não negativos dá no mesmo, porque nenhuma aresta de v consegue melhorar `dist[v]`. A vantagem é poder parar no destino sem trabalho extra.
 - Indo de c até e, a busca para no passo 2 e devolve `nosExpandidos = 2`.
 
 | | |
@@ -519,7 +335,7 @@ Seis vértices examinados e sete relaxações. b passou por 11 antes de chegar a
 | 1 | 5 | 2 | 0 | 3 | 1 | 4 | 7 | 6 |
 | 2 | 5 | 2 | 0 | 3 | 1 | 4 | **0: término antecipado** | 12 |
 
-Na iteração 2 nenhuma aresta está tensa (por exemplo, `e→b`: 1 + 1 = 2 não é < 2). A iteração não muda nada, então o laço para na linha 498 depois de 2 das 5 iterações possíveis. Como a última iteração não relaxou, `ultimaIteracaoRelaxou` é `False` e a passada extra de ciclo negativo (linhas 459–463) nem roda.
+Na iteração 2 nenhuma aresta está tensa (por exemplo, `e→b`: 1 + 1 = 2 não é < 2). A iteração não muda nada, então o laço para na linha 187 depois de 2 das 5 iterações possíveis. Como a última iteração não relaxou, `houveRelaxacao` é `False` e a passada extra de ciclo negativo (linhas 188–193) nem roda.
 
 Resultado: mesmas distâncias do Dijkstra (c = 0, e = 1, b = 2, d = 3, f = 4, a = 5) e mesmo pred[]. `nosExpandidos = 12` para qualquer destino, porque o Bellman-Ford não para no destino.
 
@@ -558,7 +374,7 @@ Por que erra: quando a é selecionado, o Dijkstra supõe que nenhum outro caminh
 
 Resposta do Bellman-Ford: s→b→a com custo **1**, correta. Ele não "fecha" nenhum vértice. Revisa todas as arestas a cada iteração, então uma melhora que chegue depois ainda é aproveitada.
 
-Se houvesse um ciclo de custo negativo alcançável (por exemplo, a→b −2 e b→a 1), dist continuaria diminuindo a cada volta. Depois de \|V\| − 1 iterações ainda haveria aresta tensa, e `calcularRotaBellmanFord` devolveria `'invalida'` (linhas 459–463).
+Se houvesse um ciclo de custo negativo alcançável (por exemplo, a→b −2 e b→a 1), dist continuaria diminuindo a cada volta. Depois de \|V\| − 1 iterações ainda haveria aresta tensa, e `calcularRotaBellmanFord` devolveria `'invalida'` (linhas 188–193).
 
 ## 6. Perguntas prováveis na apresentação
 
@@ -566,7 +382,7 @@ Se houvesse um ciclo de custo negativo alcançável (por exemplo, a→b −2 e b
 Porque o grafo permite arestas paralelas (duas ruas de A para B). Saber só que o anterior de B é A não diz qual das duas foi usada, e cada uma tem distância, tempo e custo próprios.
 
 **Por que "estritamente menor"?**
-É a regra de empate: com custo igual, a primeira estimativa fica. Isso também evita que arestas de peso zero façam pred[] apontar em círculo. Ao trocar `<` por `<=` na linha 181, 32 testes de `test_rotas_dijkstra_bellman_ford.py` falham.
+É a regra de empate: com custo igual, a primeira estimativa fica. Isso também evita que arestas de peso zero façam pred[] apontar em círculo. Ao trocar `<` por `<=` na linha 69, 32 testes de `test_rotas_dijkstra_bellman_ford.py` falham.
 
 **Por que a remoção preguiçosa é correta?**
 Toda vez que dist[w] melhora, w entra de novo na fila com a distância nova, que é menor. A entrada mais nova sai primeiro. As velhas saem depois e são reconhecidas porque o vértice já está maduro ou porque a distância delas é maior que a atual. O custo é ter até E + 1 entradas na fila, por isso o O((V + E) log E).

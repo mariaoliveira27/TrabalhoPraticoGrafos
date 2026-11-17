@@ -114,7 +114,7 @@ def calcularCorte(maduros: Set[str]) -> List[ArestaDoExemplo]:
 
 
 def tracarDijkstra() -> List[Estado]:
-    """Reproduz o laço de rotas._executarLacoDeDijkstra, guardando cada passo."""
+    """Reproduz o laço de rotas.calcularRotaDijkstra, guardando cada passo."""
     vertices = listarVerticesNaOrdemDeInsercao()
     dist = {vertice: DISTANCIA_INFINITA for vertice in vertices}
     pred: Dict[str, Optional[str]] = {vertice: None for vertice in vertices}
@@ -156,7 +156,7 @@ def descreverFila(fila: List[Tuple[float, int, str]]) -> str:
 
 
 def tracarBellmanFord() -> Tuple[List[Estado], List[str], int]:
-    """Reproduz rotas._executarIteracoesDeBellmanFord; devolve estados, registro e nosExpandidos."""
+    """Reproduz as iterações de rotas.calcularRotaBellmanFord (estados, registro, nosExpandidos)."""
     vertices = listarVerticesNaOrdemDeInsercao()
     dist = {vertice: DISTANCIA_INFINITA for vertice in vertices}
     pred: Dict[str, Optional[str]] = {vertice: None for vertice in vertices}

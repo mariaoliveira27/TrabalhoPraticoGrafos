@@ -47,7 +47,7 @@ LATITUDE_FIXA = -19.9229
 LONGITUDE_FIXA = -43.9926
 VELOCIDADE_FIXA_KMH = 30.0
 
-ARQUIVO_MAPA = os.path.join(os.path.dirname(__file__), "dados", "mapa.json")
+ARQUIVO_MAPA = os.path.join(os.path.dirname(__file__), "..", "dados", "mapa.json")
 
 # Grafo dos slides "Caminho Mínimo (1)", raiz c, e as distâncias esperadas.
 ARESTAS_DOS_SLIDES = [

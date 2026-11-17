@@ -23,7 +23,7 @@ from mapa import (
 )
 
 
-CAMINHO_DADOS = os.path.join(os.path.dirname(__file__), "dados")
+CAMINHO_DADOS = os.path.join(os.path.dirname(__file__), "..", "dados")
 ARQUIVO_MAPA = os.path.join(CAMINHO_DADOS, "mapa.json")
 ARQUIVO_POIS = os.path.join(CAMINHO_DADOS, "pontos_interesse.json")
 

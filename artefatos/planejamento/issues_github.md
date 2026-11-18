@@ -1,6 +1,6 @@
 # Plano de issues para GitHub Projects
 
-Este plano parte do estado atual: tema, arquitetura inicial e diagramas UML estão documentados; ainda não há implementação Python, dados locais, resultados experimentais, artigo ou apresentação final. Os títulos e descrições abaixo estão prontos para copiar para o GitHub. Os responsáveis permanecem como **Integrante 1–6** até que cada pessoa escolha sua atribuição.
+Este plano foi elaborado no planejamento inicial. O estado atual inclui implementação Python, dados locais, interface e testes; os benchmarks e resultados experimentais ainda precisam ser executados. Use os itens abaixo como histórico/checklist e atualize status conforme o trabalho realizado. Os títulos e descrições abaixo estão prontos para copiar para o GitHub. Os responsáveis permanecem como **Integrante 1–6** até que cada pessoa escolha sua atribuição.
 
 ## Configuração sugerida do Project
 
@@ -19,7 +19,7 @@ Para publicar as 15 issues no repositório remoto, instale e autentique o GitHub
 | --- | --- | --- |
 | Integrante 1 | Dados viários, POIs e leitura do mapa | Revisa o modelo do Integrante 2 |
 | Integrante 2 | Contratos, classes do grafo e UML | Revisa dados/importação do Integrante 1 |
-| Integrante 3 | Dijkstra e reconstrução do caminho | Revisa os testes do Integrante 4 |
+| Integrante 3 | Dijkstra, Bellman-Ford e reconstrução do caminho | Revisa os testes do Integrante 4 |
 | Integrante 4 | Testes independentes e avaliação experimental | Revisa Dijkstra do Integrante 3 |
 | Integrante 5 | Interface Streamlit + Folium e coordenação dos slides | Revisa a integração do Integrante 6 |
 | Integrante 6 | Integração do aplicativo, montagem do artigo e checklist final | Revisa a interface do Integrante 5 |
@@ -38,7 +38,7 @@ Cada integrante redige sua parte do artigo. O Integrante 6 monta e padroniza o d
 
 **Critérios de aceite**
 - [ ] Contratos de `grafo.py`, `mapa.py`, `rotas.py` e `app.py` estão escritos e compatíveis.
-- [ ] Dijkstra é o único algoritmo previsto; pesos negativos são proibidos.
+- [ ] Dijkstra e Bellman-Ford estão disponíveis; pesos inválidos são rejeitados pelo modelo.
 - [ ] Fórmulas, unidades e hipóteses dos três critérios estão documentadas.
 - [ ] Escopo de dados, testes, benchmarks, artigo e apresentação foi revisado pelos seis.
 
@@ -106,18 +106,18 @@ Cada integrante redige sua parte do artigo. O Integrante 6 monta e padroniza o d
 **Critérios de aceite**
 - [ ] Diagramas de classe e sequência correspondem às assinaturas, campos e fluxo reais.
 - [ ] Fontes PlantUML e imagens atualizadas estão versionadas.
-- [ ] Material mantém Dijkstra como algoritmo único e não oferece seletor de algoritmo.
+- [ ] Material documenta Dijkstra e Bellman-Ford e informa a seleção disponível na interface.
 - [ ] README e arquitetura apontam para arquivos e comandos atuais.
 
 ---
 
 ## Fase 2 — Algoritmo e protótipo
 
-### Issue 07 — Implementar Dijkstra e reconstrução de rotas
+### Issue 07 — Implementar algoritmos e reconstrução de rotas
 
 **Responsável:** Integrante 3 · **Revisor:** Integrante 4 · **Tamanho:** G · **Prioridade:** P0 · **Labels:** `fase: implementação`, `tipo: código`
 
-**Descrição:** Implementar em `codigo/rotas.py` Dijkstra usando fila de prioridade, relaxamento, predecessores e reconstrução do caminho, aceitando os três critérios.
+**Descrição:** Implementar em `codigo/rotas.py` Dijkstra usando fila de prioridade e Bellman-Ford usando relaxamento iterativo, ambos com predecessores, reconstrução e os três critérios.
 
 **Critérios de aceite**
 - [ ] Busca retorna caminho mínimo para cada critério com pesos não negativos.
@@ -127,11 +127,11 @@ Cada integrante redige sua parte do artigo. O Integrante 6 monta e padroniza o d
 - [ ] Resultado tem os campos acordados, incluindo nós processados.
 - [ ] Nenhuma biblioteca externa é usada para executar a busca.
 
-### Issue 08 — Criar testes do modelo, dados e Dijkstra
+### Issue 08 — Criar testes do modelo, dados e algoritmos
 
 **Responsável:** Integrante 4 · **Revisor:** Integrante 3 · **Tamanho:** G · **Prioridade:** P0 · **Labels:** `fase: validação`, `tipo: código`
 
-**Descrição:** Criar em `codigo/test_rotas.py` testes independentes para modelo, importação e busca, com grafos pequenos e respostas ótimas conhecidas.
+**Descrição:** Manter em `codigo/tests` testes independentes para modelo, importação e busca, com grafos pequenos e respostas ótimas conhecidas.
 
 **Critérios de aceite**
 - [ ] Testes cobrem os três critérios, inclusive rotas diferentes para critérios diferentes.
@@ -148,7 +148,7 @@ Cada integrante redige sua parte do artigo. O Integrante 6 monta e padroniza o d
 
 **Critérios de aceite**
 - [ ] App inicia pelo comando documentado e carrega dados pelo módulo `mapa.py`.
-- [ ] Usuário seleciona POIs e um dos três critérios; a busca usa Dijkstra.
+- [ ] Usuário seleciona POIs e um dos três critérios; a busca usa o algoritmo selecionado (Dijkstra ou Bellman-Ford).
 - [ ] Rota aparece no mapa e painel mostra distância, tempo, custo e estado.
 - [ ] Entrada inválida e destino inalcançável têm mensagens compreensíveis.
 - [ ] Interface não duplica lógica de grafo ou algoritmo.
@@ -157,7 +157,7 @@ Cada integrante redige sua parte do artigo. O Integrante 6 monta e padroniza o d
 
 **Responsável:** Integrante 6 · **Revisor:** Integrante 5 · **Tamanho:** M · **Prioridade:** P0 · **Labels:** `fase: validação`, `tipo: revisão`
 
-**Descrição:** Integrar modelo, dados, Dijkstra e interface, resolver incompatibilidades e preparar demonstração reproduzível.
+**Descrição:** Integrar modelo, dados, Dijkstra, Bellman-Ford e interface, resolver incompatibilidades e preparar demonstração reproduzível.
 
 **Critérios de aceite**
 - [ ] Fluxo de dados locais → seleção → busca → mapa funciona.
@@ -186,7 +186,7 @@ Cada integrante redige sua parte do artigo. O Integrante 6 monta e padroniza o d
 
 **Responsável:** Integrante 4 · **Apoio:** Integrante 6 · **Revisor:** Integrante 3 · **Tamanho:** G · **Prioridade:** P1 · **Labels:** `fase: validação`, `tipo: código`
 
-**Descrição:** Executar protocolo reproduzível no snapshot viário e em grafos sintéticos, para os três critérios, com aquecimento e repetições. Cronometrar somente busca e reconstrução; respeitar as comparações permitidas pelo enunciado.
+**Descrição:** Executar protocolo reproduzível no snapshot viário e em grafos sintéticos, para os dois algoritmos e três critérios, com as mesmas consultas, aquecimento e repetições. Cronometrar somente busca e reconstrução; respeitar as comparações permitidas pelo enunciado.
 
 **Critérios de aceite**
 - [ ] Consultas e grafos sintéticos são determinísticos e documentados.

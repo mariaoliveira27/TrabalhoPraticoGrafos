@@ -34,12 +34,13 @@ Contextualização, modelagem, análise dos resultados obtidos, avaliação do d
 
 ## Organização simples do projeto
 
-Projeto em Python para rotas de carro no Coração Eucarístico, desenvolvido por seis integrantes. Nesta etapa há somente diretórios e documentação, sem arquivos Python ou resultados produzidos.
+Projeto em Python para rotas de carro no Coração Eucarístico, desenvolvido por seis integrantes. A implementação atual inclui modelo de grafo, carregamento do mapa e dos POIs, Dijkstra e Bellman-Ford, testes automatizados e interface Streamlit/Folium. Os dados locais são carregados sem depender da rede. Não há resultados experimentais de desempenho publicados ainda.
 
 ```text
 TrabalhoPraticoGrafos/
 ├── codigo/
-│   ├── README.MD
+│   ├── app.py, grafo.py, mapa.py, rotas.py
+│   ├── tests/
 │   └── dados/
 ├── artefatos/
 │   ├── planejamento/
@@ -49,7 +50,7 @@ TrabalhoPraticoGrafos/
 └── Relatorio/
 ```
 
-Na implementação, o código ficará diretamente em `codigo`, começando por cinco arquivos: `grafo.py`, `mapa.py`, `rotas.py`, `app.py` (interface interativa desenvolvida com **Streamlit + Folium**) e `test_rotas.py`. Esses arquivos ainda não foram criados. O desenho prevê quatro classes centrais do modelo (`Vertice`, `Aresta`, `Grafo` e `ResultadoRota`), com suporte a otimização por **tempo**, **distância** ou **custo financeiro**. A busca pelo caminho mínimo utilizará exclusivamente o algoritmo de Dijkstra, com implementação e testes modulares.
+O código fica diretamente em `codigo`: `grafo.py`, `mapa.py`, `rotas.py`, `app.py` (interface **Streamlit + Folium**) e os testes em `codigo/tests`. O modelo inclui quatro classes centrais (`Vertice`, `Aresta`, `Grafo` e `ResultadoRota`), com suporte a otimização por **tempo**, **distância** ou **custo financeiro**. A interface permite escolher Dijkstra ou Bellman-Ford para buscar caminhos por distância, tempo ou custo. Os pesos do snapshot atual são não negativos; Dijkstra é apropriado para esses dados, enquanto Bellman-Ford também é implementado e comparado nos testes.
 
 - [Organização do código](codigo/README.MD).
 - [Arquitetura e responsabilidades](artefatos/planejamento/arquitetura.md).
@@ -59,3 +60,7 @@ Na implementação, o código ficará diretamente em `codigo`, começando por ci
 - [Testes e desempenho](artefatos/planejamento/validacao.md).
 - [Artefatos](artefatos/README.MD).
 - [Relatório](Relatorio/README.MD).
+
+## Executar
+
+Instale as dependências de `requirements.txt`. Para iniciar a interface: `streamlit run codigo/app.py`. Para rodar os testes: `python -m pytest codigo/tests -v`.

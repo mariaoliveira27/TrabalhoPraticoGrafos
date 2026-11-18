@@ -1,38 +1,38 @@
 # Arquitetura simples
 
-A organização foi reduzida para facilitar a implementação e a explicação linha a linha. Não há código Python nesta etapa. Os arquivos abaixo serão criados quando a implementação começar.
+A arquitetura implementada mantém módulos pequenos para facilitar a manutenção e a explicação. Os arquivos listados abaixo já existem.
 
-## Cinco arquivos futuros
+## Módulos implementados
 
 | Arquivo | Responsabilidade | Stack / Bibliotecas |
 | --- | --- | --- |
 | `codigo/grafo.py` | Estrutura do grafo próprio (sem NetworkX), entidades (`Vertice`, `Aresta`, `Grafo`, `ResultadoRota`), pesos por critério e cálculos geográficos puros (Haversine) | Python padrão (`math`, `typing`) |
 | `codigo/mapa.py` | Leitura, validação e montagem do grafo a partir do snapshot OSM e POIs | Python padrão (`json`, `typing`) |
-| `codigo/rotas.py` | Implementação do Método de Dijkstra (relaxamento de arcos tensos, controle de predecessores e reconstrução de caminhos mínimos) | Python padrão (`heapq`, `typing`) |
+| `codigo/rotas.py` | Implementação de Dijkstra e Bellman-Ford (relaxamento, predecessores e reconstrução de caminhos mínimos) | Python padrão (`heapq`, `typing`) |
 | `codigo/app.py` | Interface gráfica interativa: renderização do mapa, seleção de parâmetros e exibição das métricas | **Streamlit + Folium** (`streamlit`, `folium`, `streamlit-folium`) |
-| `codigo/test_rotas.py` | Testes unitários de borda, testes de integração e benchmarks de desempenho empírico | `pytest`, `time` |
+| `codigo/tests/` | Testes de unidade e integração; benchmarks permanecem como etapa experimental separada | `pytest`, `time` |
 
-Os arquivos ficam diretamente em `codigo`, sem `src`, pacote interno ou camadas adicionais. O único subdiretório será `dados`, contendo futuramente o mapa e o cadastro dos pontos de interesse.
+Os módulos ficam diretamente em `codigo`, sem `src` ou camadas adicionais; `dados` contém o snapshot e catálogo local, e `tests` reúne os testes automatizados.
 
-## Quatro classes do modelo
+## Quatro classes do modelo (implementadas)
 
-| Classe futura, em `grafo.py` | Responsabilidade |
+| Classe, em `grafo.py` | Responsabilidade |
 | --- | --- |
 | `Vertice` | Identificador e coordenadas geográficas (latitude e longitude) de um cruzamento ou nó viário |
 | `Aresta` | Identidade, origem, destino, distância (m), velocidade (km/h), tempo estimado (s) e custo financeiro estimado (R$) de um segmento viário |
 | `Grafo` | Vértices, arestas e listas de adjacência próprias indexadas |
 | `ResultadoRota` | Situação da busca, sequência ordenada de arestas, custos consolidados (distância, tempo e financeiro) e quantidade de nós expandidos/maduros |
 
-Os pontos de interesse serão registros simples com identificador, nome, coordenadas e nó viário associado. Não precisarão de uma classe própria.
+Os pontos de interesse são registros simples com identificador, nome, coordenadas e nó viário associado. Não precisam de uma classe própria.
 
-Leitura e construção serão funções em `mapa.py`. A busca pelo menor caminho será executada pelo algoritmo de Dijkstra em `rotas.py`. A interface (`app.py`) fará a coordenação entre a entrada do usuário, as buscas e a renderização no mapa interativo com Folium. Não haverá hierarquia pesada de herança ou um arquivo separado para cada entidade.
+Leitura e construção são funções em `mapa.py`. A busca pelo menor caminho é executada por Dijkstra ou Bellman-Ford em `rotas.py`, conforme a escolha na interface. A interface (`app.py`) coordena a entrada do usuário, as buscas e a renderização no mapa interativo com Folium. Não há hierarquia pesada de herança ou um arquivo separado para cada entidade.
 
 ## Dependências e fluxo
 
 1. `app.py` inicia e chama a leitura do mapa em `mapa.py`.
 2. `mapa.py` valida os registros de `mapa.json` e `pontos_interesse.json` e monta a estrutura de `Grafo`.
 3. `app.py` recebe a escolha do usuário: origem, destino e critério de otimização (tempo, distância ou custo).
-4. `rotas.py` executa a busca (`calcularRotaDijkstra`) usando o grafo preparado e devolve uma instância de `ResultadoRota`.
+4. `rotas.py` executa `calcularRotaDijkstra` ou `calcularRotaBellmanFord` usando o grafo preparado e devolve `ResultadoRota`.
 5. `app.py` renderiza o traçado do caminho sobre o mapa Folium e apresenta as métricas consolidadas na barra lateral do Streamlit.
 
 `grafo.py` não conhece arquivos ou interface. `rotas.py` utiliza o modelo e os cálculos geográficos, sem ler JSON, importar a interface ou consultar a internet. A duração de uma busca é cronometrada estritamente fora do algoritmo.
@@ -52,7 +52,11 @@ Leitura e construção serão funções em `mapa.py`. A busca pelo menor caminho
 - Destino inalcançável com situação própria e custos indisponíveis; origem igual ao destino com custo zero.
 - Solicitação inválida diferenciada de ausência de caminho.
 
-### Fundamentação Teórica: Método de Dijkstra (1959) e Condições de Minimalidade
+### Algoritmos de caminho mínimo: Dijkstra e Bellman-Ford
+
+Dijkstra usa fila de prioridade e pressupõe pesos não negativos; sua complexidade implementada é $O((|V|+|E|)\log |V|)$. Bellman-Ford relaxa arestas em até $|V|-1$ passadas e detecta ciclos negativos alcançáveis, com complexidade $O(|V||E|)$. Os dados viários atuais produzem pesos não negativos.
+
+#### Dijkstra (1959) e condições de minimalidade
 
 Conforme abordado na disciplina (Prof. Leonardo Vilela Cardoso), o algoritmo se fundamenta em:
 1. **Corte e Estimativas:**

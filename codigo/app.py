@@ -6,14 +6,19 @@ from streamlit_folium import st_folium
 
 from mapa import (
     carregar_pois,
+    carregar_mapa,
+    construir_grafo,
+    associar_poi_ao_no_mais_proximo,
     salvar_poi_cache,
     remover_poi_cache,
     buscar_poi_api,
     geocodificar_endereco,
     BBOX_BH
 )
+from rotas import calcularRotaDijkstra, calcularRotaBellmanFord
 
 CAMINHO_POIS = os.path.join(os.path.dirname(__file__), "dados", "pontos_interesse.json")
+CAMINHO_MAPA = os.path.join(os.path.dirname(__file__), "dados", "mapa.json")
 
 st.set_page_config(
     page_title="Sistema de Rotas - Belo Horizonte",
@@ -30,6 +35,13 @@ def obter_pois():
         else:
             st.session_state["pois"] = []
     return st.session_state["pois"]
+
+
+@st.cache_resource
+def obter_grafo():
+    """Carrega o snapshot local e constrói o grafo uma vez por sessão do app."""
+    dados_mapa = carregar_mapa(CAMINHO_MAPA)
+    return construir_grafo(dados_mapa)
 
 
 def criar_mapa(pois, rota=None):
@@ -54,13 +66,13 @@ def criar_mapa(pois, rota=None):
             )
         ).add_to(mapa)
 
-    if rota:
+    if rota and rota["caminho"]:
         folium.PolyLine(
             locations=rota["caminho"],
             color="red",
             weight=5,
             opacity=0.8,
-            tooltip="Rota simulada"
+            tooltip="Rota calculada no grafo viário"
         ).add_to(mapa)
 
         folium.Marker(
@@ -86,53 +98,23 @@ def criar_mapa(pois, rota=None):
     return mapa
 
 
-def calcular_rota_simulada(origem, destino, criterio):
-    caminho = [
-        origem["coordenadas"],
-        destino["coordenadas"]
-    ]
-
-    return {
-        "estado": "Simulação",
-        "caminho": caminho,
-        "nomes_caminho": [
-            origem["nome"],
-            destino["nome"]
-        ],
-        "distancia": 3.5,
-        "tempo": 12,
-        "custo": 2.50,
-        "criterio": criterio
-    }
-
-
 def exibir_metricas(rota):
+    resultado = rota["resultado"]
     coluna1, coluna2, coluna3 = st.columns(3)
-
-    coluna1.metric(
-        "Distância",
-        f'{rota["distancia"]:.2f} km'
-    )
-
-    coluna2.metric(
-        "Tempo estimado",
-        f'{rota["tempo"]:.0f} min'
-    )
-
-    coluna3.metric(
-        "Custo",
-        f'R$ {rota["custo"]:.2f}'
-    )
-
-    st.warning(
-        "Rota simulada. O algoritmo Dijkstra ainda não foi integrado."
-    )
+    if not resultado.foiEncontrada():
+        st.error("Destino inalcançável." if resultado.situacao == "inalcancavel" else "Não foi possível calcular a rota: solicitação inválida ou ciclo negativo.")
+        return
+    coluna1.metric("Distância", f"{resultado.getDistanciaKm():.2f} km")
+    coluna2.metric("Tempo estimado", f"{resultado.getTempoMinutos():.1f} min")
+    coluna3.metric("Custo", f"R$ {resultado.custoTotalReais:.2f}")
+    st.caption(f"Algoritmo: {rota['algoritmo']} · Nós expandidos: {resultado.nosExpandidos}")
 
 
 def main():
     st.title("Sistema de Otimização de Rotas - Belo Horizonte")
 
     pois = obter_pois()
+    grafo = obter_grafo()
     pois_ordenados = sorted(pois, key=lambda p: p["nome"].lower())
     nomes_pois = [p["nome"] for p in pois_ordenados]
 
@@ -241,19 +223,21 @@ def main():
         "e escolha o critério para calcular a rota."
     )
 
-    coluna1, coluna2, coluna3 = st.columns(3)
+    coluna1, coluna2, coluna3, coluna4 = st.columns(4)
 
     with coluna1:
         origem_nome = st.selectbox(
             "Ponto de origem",
-            nomes_pois
+            nomes_pois if nomes_pois else ["Sem POIs cadastrados"],
+            disabled=not nomes_pois
         )
 
     with coluna2:
         destino_nome = st.selectbox(
             "Ponto de destino",
-            nomes_pois,
-            index=1 if len(nomes_pois) > 1 else 0
+            nomes_pois if nomes_pois else ["Sem POIs cadastrados"],
+            index=1 if len(nomes_pois) > 1 else 0,
+            disabled=not nomes_pois
         )
 
     with coluna3:
@@ -262,6 +246,9 @@ def main():
             ["Distância", "Tempo", "Custo"]
         )
 
+    with coluna4:
+        algoritmo = st.selectbox("Algoritmo", ["Dijkstra", "Bellman-Ford"])
+
     botao_calcular = st.button(
         "Calcular rota",
         type="primary",
@@ -269,7 +256,9 @@ def main():
     )
 
     if botao_calcular:
-        if origem_nome == destino_nome:
+        if not nomes_pois:
+            st.warning("Cadastre ao menos um ponto de interesse.")
+        elif origem_nome == destino_nome:
             st.session_state.pop("rota", None)
 
             st.warning(
@@ -287,13 +276,24 @@ def main():
                 if poi["nome"] == destino_nome
             )
 
-            rota = calcular_rota_simulada(
-                origem,
-                destino,
-                criterio
-            )
-
-            st.session_state["rota"] = rota
+            id_origem = origem.get("no_viario_associado")
+            id_destino = destino.get("no_viario_associado")
+            if id_origem not in grafo.vertices:
+                id_origem = associar_poi_ao_no_mais_proximo(origem, grafo.vertices)
+            if id_destino not in grafo.vertices:
+                id_destino = associar_poi_ao_no_mais_proximo(destino, grafo.vertices)
+            funcao = calcularRotaDijkstra if algoritmo == "Dijkstra" else calcularRotaBellmanFord
+            resultado = funcao(grafo, id_origem, id_destino, criterio)
+            vertices_rota = resultado.getVerticesCaminho()
+            if resultado.foiEncontrada() and not vertices_rota:
+                vertices_rota = [grafo.getVertice(id_origem)]
+            st.session_state["rota"] = {
+                "resultado": resultado,
+                "caminho": [[v.latitude, v.longitude] for v in vertices_rota],
+                "nomes_caminho": [v.nome or v.id for v in vertices_rota],
+                "criterio": criterio,
+                "algoritmo": algoritmo,
+            }
 
     rota_atual = st.session_state.get("rota")
 
@@ -320,15 +320,11 @@ def main():
         if rota_atual:
             exibir_metricas(rota_atual)
 
-            st.write("**Caminho encontrado:**")
+            if rota_atual["resultado"].foiEncontrada():
+                st.write("**Caminho encontrado:**")
 
-            st.write(
-                " → ".join(rota_atual["nomes_caminho"])
-            )
-
-            st.write(
-                f'**Critério:** {rota_atual["criterio"]}'
-            )
+                st.write(" → ".join(rota_atual["nomes_caminho"]))
+                st.write(f'**Critério:** {rota_atual["criterio"]}')
 
         else:
             st.info(

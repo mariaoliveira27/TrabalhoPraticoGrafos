@@ -1,6 +1,6 @@
 # Validação e avaliação de desempenho
 
-Este documento separa correção funcional de experimentos de desempenho. Os testes abaixo existem em `codigo/tests`; benchmarks não foram executados e nenhum resultado experimental é reportado aqui.
+Este documento separa correção funcional de experimentos de desempenho. Os testes abaixo existem em `codigo/tests`. O primeiro benchmark comparativo do snapshot local foi executado; seus arquivos e limites de interpretação estão em `artefatos/resultados/README.md`.
 
 ## Cobertura automatizada existente
 
@@ -10,9 +10,13 @@ A interface liga os POIs aos vértices associados no snapshot e permite selecion
 
 Execute a suíte com `python -m pytest codigo/tests -v` a partir da raiz do repositório. O tempo total do pytest não é métrica de busca.
 
-## Protocolo de benchmark (a executar)
+## Protocolo e resultado do benchmark no snapshot local
 
-Compare os dois algoritmos no mesmo snapshot fixo e nos mesmos pares ordenados origem–destino, para cada um dos três critérios. Registre o custo encontrado e confirme que as rotas têm o mesmo custo ótimo antes de interpretar tempos. Use seleção determinística e publique a lista/semente dos pares para reprodução. Inclua também grafos sintéticos em grid de 100, 500 e 1.000 vértices, garantindo que cada comparação use o mesmo grafo, origem, destino e critério.
+A rotina `codigo/benchmark_rotas.py` executou todos os 182 pares ordenados distintos de um grafo com 14 vértices e 26 arestas direcionadas, nos três critérios. Foram feitas 20 repetições por algoritmo/par/critério, além de aquecimento. Os custos coincidiram em todas as comparações. As medianas medidas foram: distância — Dijkstra 0,04170 ms, Bellman-Ford 0,11870 ms; tempo — 0,03595 ms e 0,07710 ms; custo — 0,03340 ms e 0,06630 ms, respectivamente. São tempos deste snapshot pequeno e ambiente não isolado, sem conclusão de desempenho geral. Consulte os CSVs e metadados em `artefatos/resultados`.
+
+
+
+Para reproduzir ou ampliar o experimento, compare os dois algoritmos no mesmo snapshot fixo e nos mesmos pares ordenados origem–destino, para cada um dos três critérios. Registre o custo encontrado e confirme que as rotas têm o mesmo custo ótimo antes de interpretar tempos. Use seleção determinística e publique a lista/semente dos pares para reprodução. Inclua também grafos sintéticos em grid de 100, 500 e 1.000 vértices, garantindo que cada comparação use o mesmo grafo, origem, destino e critério.
 
 Para cada combinação de grafo, par e critério:
 
@@ -22,4 +26,4 @@ Para cada combinação de grafo, par e critério:
 4. Registre algoritmo, critério, origem, destino, situação, custo ótimo, tempo de cada repetição, mediana e desvio padrão, `nosExpandidos`, |V| e |E|.
 5. Registre versão/commit do código, Python, sistema operacional, processador, memória, política de energia e condições relevantes da máquina.
 
-Dijkstra e Bellman-Ford contam nós expandidos de maneiras diferentes, conforme definido pela implementação; preserve a métrica bruta e explique essa diferença. Não apresente esses totais como operações equivalentes. Os resultados e gráficos devem ser guardados em `artefatos/resultados/tabelas` e `artefatos/resultados/figuras`, com unidades, parâmetros e versão do código. Registre somente dados efetivamente medidos.
+Dijkstra e Bellman-Ford contam nós expandidos de maneiras diferentes, conforme definido pela implementação; preserve a métrica bruta e explique essa diferença. Não apresente esses totais como operações equivalentes. Os resultados e gráficos existentes estão guardados em `artefatos/resultados/tabelas` e `artefatos/resultados/figuras`, com unidades, parâmetros e versão do código. Registre somente dados efetivamente medidos.

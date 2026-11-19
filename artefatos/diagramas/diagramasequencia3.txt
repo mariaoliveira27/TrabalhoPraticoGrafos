@@ -1,0 +1,82 @@
+@startuml
+title Diagrama de Sequência - Cálculo de Otimização de Rota Urbana
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundCorner 10
+skinparam sequence {
+  ArrowColor #345678
+  ActorBorderColor #345678
+  LifeLineBorderColor #345678
+  ParticipantBackgroundColor #F5F8FC
+  ParticipantBorderColor #345678
+  FontColor #1F2937
+}
+
+actor "Usuário / Cliente" as Client
+participant ":CalculadorRota" as Calc
+participant "grafo:Grafo" as Grafo
+participant "aresta:Aresta" as Aresta
+participant "resultado:ResultadoRota" as Res
+
+Client -> Calc : calcularRota(idOrigem, idDestino, criterio)
+activate Calc
+
+' 1. Validação dos vértices de entrada
+Calc -> Grafo : existeVertice(idOrigem)
+activate Grafo
+Grafo --> Calc : origemExiste: Boolean
+deactivate Grafo
+
+Calc -> Grafo : existeVertice(idDestino)
+activate Grafo
+Grafo --> Calc : destinoExiste: Boolean
+deactivate Grafo
+
+alt !origemExiste || !destinoExiste
+    create Res
+    Calc -> Res : invalida()
+    activate Res
+    Res --> Calc : resultado
+    deactivate Res
+    Calc --> Client : resultado
+else Vértices válidos
+    ' 2. Execução da busca (ex: Dijkstra / Bellman-Ford)
+    loop Enquanto houver nós a expandir e destino não atingido
+        Calc -> Grafo : getAdjacencias(idAtual)
+        activate Grafo
+        Grafo --> Calc : adjacencias: List<Aresta>
+        deactivate Grafo
+
+        loop Para cada aresta em adjacencias
+            Calc -> Aresta : getPeso(criterio)
+            activate Aresta
+            Aresta --> Calc : peso: Double
+            deactivate Aresta
+            
+            Calc -> Calc : relaxarAresta(aresta, peso)
+        end
+    end
+
+    ' 3. Construção do retorno conforme o alcance
+    alt Caminho encontrado até idDestino
+        Calc -> Calc : reconstruirCaminho(idOrigem, idDestino)
+        
+        create Res
+        Calc -> Res : aPartirDoCaminho(caminho, nosExpandidos)
+        activate Res
+        Res --> Calc : resultado
+        deactivate Res
+    else Destino inalcançável
+        create Res
+        Calc -> Res : inalcancavel(nosExpandidos)
+        activate Res
+        Res --> Calc : resultado
+        deactivate Res
+    end
+
+    Calc --> Client : resultado
+end
+
+deactivate Calc
+@enduml

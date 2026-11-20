@@ -10,11 +10,11 @@
 
 \title{Trabalho Prático\\ Ferramenta de Processamento de Dados com Grafos}
 
-\author{Áulus Batista\inst{1}, Davi Soares\inst{1}, Henrique Neves\inst{1}, Maria Clara Gomes\inst{1}, Vinícius Simões\inst{1}}
+\author{Áulus Batista\inst{1}, Davi Soares\inst{1}, Henrique Neves\inst{1}, Pedro Matos\inst{1}, \\Maria Clara Gomes\inst{1}, Vinícius Simões\inst{1}}
 
 \address{\small Instituto de Ciências Exatas e Informática (ICEI) -- Pontifícia Universidade Católica de Minas Gerais \\(PUC Minas)
 Campus Coração Eucarístico (Coreu) -- Belo Horizonte -- MG -- Brazil\\
-{\small E-mails: aulus.batista, davi.soares, henrique.neves, maria.clara, vinicius.simoes@sga.pucminas.br}
+{\small E-mails: aulus.batista, davi.soares, henrique.neves, pedro.matos, maria.clara, \\vinicius.simoes@sga.pucminas.br}
 }
 
 \begin{document} 
@@ -53,7 +53,7 @@ redes viárias maiores.
 \end{resumo}
 
 \section{Introdução}
-% Contexto de rotas urbanas, problema, objetivos, contribuições e organização.
+\label{sec:introducao}
 A busca por rotas em ambientes urbanos pode ser tratada como um
 problema de caminho mínimo em grafos. Nessa representação, os
 cruzamentos e outros pontos da rede viária são modelados como vértices,
@@ -86,15 +86,20 @@ algoritmos nas consultas avaliadas e menores medianas de tempo para
 Dijkstra nesse snapshot. Como a rede analisada é pequena, os resultados
 caracterizam apenas o conjunto de dados e o ambiente utilizados.
 
-O restante do artigo está organizado da seguinte forma: a Seção 2
-apresenta os objetivos; a Seção 3 discute os conceitos e trabalhos
-relacionados; a Seção 4 caracteriza os dados e o problema; a Seção 5
-descreve a modelagem do sistema; e a Seção 6 apresenta os algoritmos e
-detalhes de implementação. A Seção 7 descreve a interface, a Seção 8
-apresenta o protocolo experimental e os resultados, e a Seção 9 discute
-as limitações. Por fim, a Seção 10 apresenta as conclusões e os
-trabalhos futuros.
+O restante do artigo está organizado da seguinte forma: a
+Seção~\ref{sec:objetivo} apresenta os objetivos; a
+Seção~\ref{sec:fundamentacao} discute os conceitos e trabalhos
+relacionados; a Seção~\ref{sec:metodologia} descreve as etapas de
+desenvolvimento; a Seção~\ref{sec:dados} caracteriza os dados e o
+problema; a Seção~\ref{sec:modelagem} apresenta a modelagem; e a
+Seção~\ref{sec:algoritmo} detalha os algoritmos e a implementação. A
+Seção~\ref{sec:interface} apresenta a aplicação, a
+Seção~\ref{sec:avaliacao} descreve o protocolo e os resultados, e a
+Seção~\ref{sec:discussao} discute os achados e as limitações. Por fim,
+a Seção~\ref{sec:conclusao} apresenta as conclusões e os trabalhos
+futuros.
 \section{Objetivo}
+\label{sec:objetivo}
 Desenvolver uma ferramenta computacional para resolver o problema de otimização de rotas urbanas com base em mapas, aplicado por meio
 da modelagem, implementação e análise de grafos.
 \subsection{Objetivos específicos}
@@ -102,9 +107,11 @@ da modelagem, implementação e análise de grafos.
     \item Importar e processar mapas estruturados contendo pontos de interesse;
     \item Modelar a rede viária e os custos de deslocamento por meio de grafos;
     \item Implementar algoritmos de caminho mínimo para o cálculo e a exibição de rotas otimizadas;
+    \item Comparar Dijkstra e Bellman-Ford quanto aos custos retornados, ao tempo de execução e à quantidade de vértices processados no snapshot avaliado;
 \end{itemize}
 
 \section{Fundamentação Teórica}
+\label{sec:fundamentacao}
 
 Um grafo direcionado e ponderado pode ser definido como
 $G=(V,E,w)$, em que $V$ representa o conjunto de vértices, $E$ o
@@ -155,6 +162,7 @@ local pequeno. Assim, a avaliação caracteriza a implementação e os
 dados utilizados, mas não reproduz as condições de roteamento de uma
 malha urbana completa.
 \section{Metodologia}
+\label{sec:metodologia}
 
 Este trabalho tem caráter aplicado e compreende o desenvolvimento de
 uma ferramenta de roteamento urbano e a avaliação experimental de dois
@@ -209,24 +217,23 @@ protocolo detalhado e os resultados são apresentados na
 Seção~\ref{sec:avaliacao}.
 \section{Dados e Caracterização do Problema}
 \label{sec:dados}
-% Região coberta, fonte de dados, preparação da malha e POIs.
 
 \subsection{Área de estudo}
-O estudo considera o problema de roteamento urbano no município de
-Belo Horizonte, Minas Gerais. A ferramenta foi desenvolvida para
-calcular rotas entre pontos de origem e destino com base na malha
-viária disponível nos dados do projeto. O snapshot utilizado nos
-experimentos contém 14 vértices e 26 arestas direcionadas e representa
-o recorte local da rede viária empregado na avaliação.
+O problema de roteamento considerado tem como contexto o município de
+Belo Horizonte, Minas Gerais. Entretanto, o snapshot viário usado na
+avaliação cobre apenas um recorte do bairro Coração Eucarístico. Esse
+recorte contém 14 vértices e 26 arestas direcionadas; portanto, os
+experimentos deste artigo não representam toda a malha viária do
+município.
 
 \subsection{Fonte e coleta dos dados}
-O arquivo da malha viária identifica o OpenStreetMap (OSM) como fonte
-dos dados e registra uma extração realizada em 15 de novembro de 2026.
-Os arquivos consultados não permitem identificar qual ferramenta ou
-consulta foi utilizada para gerar esse snapshot. O conjunto local
-contém 14 vértices e 15 registros de aresta. Os dados do OpenStreetMap
-são distribuídos sob a licença Open Database License (ODbL), com
-atribuição aos colaboradores do projeto.
+Os metadados do arquivo local \texttt{mapa.json} identificam o
+OpenStreetMap (OSM) como fonte e registram a data de extração de
+15 de novembro de 2026. A documentação mantida pela equipe não registra
+qual ferramenta ou consulta foi usada para obter originalmente esse
+snapshot. O conjunto contém 14 vértices e 15 registros de aresta. Os
+dados do OpenStreetMap são distribuídos sob a licença Open Database
+License (ODbL), com atribuição aos colaboradores do projeto.
 
 \subsection{Preparação dos dados}
 A aplicação carrega a malha viária a partir do arquivo local
@@ -236,16 +243,24 @@ uma aresta em cada sentido. O snapshot também registra informações de
 direção das vias e, quando disponíveis, limites de velocidade.
 
 O catálogo local de pontos de interesse, armazenado em
-\texttt{pontos\_interesse.json}, contém 12 registros. Esses pontos podem
-ser utilizados como locais de origem ou destino das consultas de rota.
+\texttt{pontos\_interesse.json}, contém 12 registros. O catálogo inclui
+locais distribuídos por Belo Horizonte, enquanto o grafo disponível
+abrange apenas o recorte do Coração Eucarístico. Os identificadores de
+nó viário registrados nesses POIs não correspondem aos IDs dos vértices
+do snapshot. Na execução atual, a interface recorre ao vértice mais
+próximo quando não encontra o nó indicado. Por isso, esses POIs não
+devem ser interpretados como pontos corretamente conectados à malha em
+toda a cidade.
 
 Além dos dados locais, a interface permite buscar locais pelo nome e
 cadastrar endereços manualmente. Para essas operações, a aplicação
 consulta a API do Nominatim: a busca de locais solicita até oito
 resultados por consulta, enquanto o cadastro manual de endereço solicita
-um resultado. Essas consultas são realizadas durante o uso dessas
-funcionalidades; os arquivos e o código analisados não registram a data
-das consultas nem a quantidade de resultados efetivamente retornados.
+um resultado. A aplicação realiza essas consultas quando o usuário
+aciona as funcionalidades correspondentes, mas não mantém um registro
+histórico das requisições. Por esse motivo, são informados os limites
+configurados por consulta, e não a data ou a quantidade efetiva de
+resultados obtidos em cada uso.
 
 \subsection{Problema considerado}
 Dado um ponto de origem, um ponto de destino e um critério de
@@ -255,6 +270,7 @@ estimado e custo financeiro. A rota é calculada sobre o snapshot local,
 que contém 14 vértices e 26 arestas direcionadas.
 
 \section{Modelagem}
+\label{sec:modelagem}
 
 A malha viária é representada por um grafo direcionado e ponderado
 $G=(V,E)$, em que $V$ é o conjunto de vértices e $E$ é o conjunto de
@@ -287,7 +303,7 @@ parâmetros pelo usuário até a apresentação do resultado.
 \end{figure}
 
 \section{Algoritmo e Implementação}
-% Vértices, arestas, pesos, critérios de distância/tempo/custo e diagramas.
+\label{sec:algoritmo}
 Antes de calcular a rota, o usuário seleciona o algoritmo de busca e o
 critério de otimização. O algoritmo escolhido determina como será
 realizada a busca pelo caminho mínimo, enquanto o critério define o peso
@@ -295,11 +311,13 @@ utilizado em cada aresta: distância, tempo estimado ou custo financeiro.
 Assim, a rota encontrada minimiza a soma dos pesos das arestas segundo o
 critério selecionado.
 
-A distância de cada trecho é calculada em metros a partir das coordenadas
-geográficas dos vértices de origem e destino, utilizando a fórmula de
-Haversine. O tempo estimado é calculado pela divisão da distância, em
-metros, pela velocidade da via, convertida de quilômetros por hora para
-metros por segundo:
+A distância atribuída a cada aresta é estimada em metros pela fórmula de
+Haversine entre as coordenadas geográficas de seus vértices extremos.
+Como o snapshot não contém a geometria completa do traçado das ruas,
+essa medida pode diferir do comprimento real do trecho. O tempo
+estimado é calculado pela divisão da distância, em metros, pela
+velocidade considerada para a via, convertida de quilômetros por hora
+para metros por segundo:
 
 \begin{equation}
     t = \frac{d}{v_{\text{km/h}} / 3{,}6}
@@ -318,13 +336,6 @@ cálculo é:
     c = \left(\frac{d/1000}{10}\right) \times 5{,}80
     \label{eq:custo}
 \end{equation}
-A distância atribuída a cada aresta é calculada pela fórmula de
-Haversine entre as coordenadas de seus vértices extremos. Como o
-snapshot não contém a geometria completa do traçado das ruas, essa
-medida é uma estimativa geográfica entre os extremos do trecho. O tempo
-é estimado pela distância dividida pela velocidade considerada, e o
-custo financeiro utiliza o consumo médio e o preço de combustível
-definidos para o modelo.
 
 Os dois algoritmos são implementados em Python no módulo
 \texttt{rotas.py}. Dijkstra utiliza a fila de prioridade
@@ -407,29 +418,14 @@ $O(|V|+|E|)$, incluindo a fila. Bellman-Ford executa até
 $|V|-1$ passadas pelas listas de adjacência e uma verificação adicional;
 seu tempo no pior caso é $O(|V||E|)$ e seu espaço auxiliar é
 $O(|V|)$.
-O algoritmo de Dijkstra é adequado a grafos cujos pesos são não
-negativos. Na implementação, ele mantém o menor custo conhecido desde a
-origem e usa uma fila de prioridade para selecionar o próximo vértice.
-A busca termina quando o destino é processado.
-
-O algoritmo de Bellman-Ford relaxa repetidamente as arestas alcançáveis
-e verifica a existência de ciclos de peso negativo alcançáveis a partir
-da origem. Embora esse algoritmo possa, em teoria, calcular caminhos em
-grafos com pesos negativos quando não há ciclos negativos alcançáveis, o
-modelo deste sistema rejeita pesos negativos. Assim, nesta aplicação,
-ambos os algoritmos operam com pesos não negativos.
-
-Durante a busca, cada vértice guarda a aresta pela qual recebeu seu
-menor custo conhecido. Ao final, o sistema segue essas arestas do
-destino até a origem e inverte a sequência para apresentar o caminho na
-ordem correta.
 \section{Interface}
+\label{sec:interface}
 
 A interface do sistema foi desenvolvida em Python com Streamlit, uma biblioteca para criação de aplicações web interativas. Para apresentar o mapa e desenhar os pontos de interesse e as rotas, foi utilizada a biblioteca Folium, integrada ao Streamlit pelo componente Streamlit-Folium.
 
 A aplicação exibe um mapa centrado em Belo Horizonte e marca os pontos de interesse cadastrados. Na barra lateral, o usuário pode consultar locais pela API Nominatim do OpenStreetMap, salvar resultados no catálogo local, cadastrar um endereço manualmente por geocodificação ou remover um ponto cadastrado. A busca online é opcional; o mapa viário e o catálogo existentes são carregados de arquivos JSON locais.
 
-Na tela principal, o usuário seleciona os pontos de origem e destino, escolhe o critério de otimização — distância, tempo ou custo — e seleciona o algoritmo: Dijkstra ou Bellman-Ford. Ao solicitar o cálculo, o aplicativo associa cada ponto de interesse ao vértice viário correspondente e chama a função de busca do módulo \texttt{rotas.py}, usando o grafo montado a partir dos dados carregados por \texttt{mapa.py}.
+Na tela principal, o usuário seleciona os pontos de origem e destino, escolhe o critério de otimização — distância, tempo ou custo — e seleciona o algoritmo: Dijkstra ou Bellman-Ford. Ao solicitar o cálculo, o aplicativo procura associar cada ponto de interesse ao vértice viário indicado no catálogo. Se esse identificador não existir no grafo, utiliza o vértice mais próximo das coordenadas do ponto. Como os identificadores atuais do catálogo não correspondem aos vértices do snapshot, as rotas envolvendo esses POIs são aproximações feitas sobre a malha local e não demonstram roteamento válido entre todas as regiões de Belo Horizonte. Em seguida, o aplicativo chama a função de busca do módulo \texttt{rotas.py}, usando o grafo montado por \texttt{mapa.py}.
 
 Quando uma rota é encontrada, o sistema desenha no mapa o caminho formado pelos vértices do grafo e apresenta a distância total, o tempo estimado, o custo financeiro, o algoritmo utilizado e a quantidade de nós expandidos. Para solicitações inválidas ou destinos inalcançáveis, a interface exibe uma mensagem informativa. Os valores e o caminho apresentados são calculados pelo algoritmo com base nos dados do grafo; não são resultados simulados.
 
@@ -469,9 +465,6 @@ as métricas retornadas pelo sistema.
    \label{fig:rota-dijkstra-custo}
 \end{figure}
 
-% Dijkstra, fila de prioridade, tratamento de exceções e arquitetura dos módulos.
-% Benchmarks empíricos comparando o tempo de execução e nós expandidos entre Dijkstra e Bellman-Ford 
-% na malha viária do Coração Eucarístico.
 \section{Avaliação Experimental e Comparação}
 \label{sec:avaliacao}
 \subsection{Protocolo experimental}
@@ -485,8 +478,16 @@ e 20 execuções cronometradas.
 A medição utilizou \texttt{time.perf\_counter} e incluiu a busca e a
 reconstrução do caminho, excluindo o carregamento dos dados e a
 renderização da interface. Os resultados de Dijkstra e Bellman-Ford
-foram comparados para confirmar que ambos encontraram custos iguais
-nas mesmas consultas.
+foram comparados quanto à situação da busca e ao custo retornado. Dos
+182 pares ordenados, 117 possuem rota no grafo e 65 são inalcançáveis
+devido à orientação das vias de mão única. A rede é conexa quando se
+ignoram as direções das arestas. As buscas inalcançáveis foram mantidas
+na medição do tempo.
+
+O benchmark foi executado em Windows 11 com Python 3.12.6, em um
+processador Intel64 Family 6 Model 142 com quatro processadores lógicos.
+A memória RAM não foi registrada e a máquina não estava isolada de
+outras tarefas. Assim, as medições descrevem esse ambiente de execução.
 
 \subsection{Resultados}
 A Figura~\ref{fig:benchmark-tempo} apresenta o tempo mediano por busca.
@@ -495,11 +496,12 @@ Na distância, as medianas foram de 0,04870\,ms para Dijkstra e
 e 0,13510\,ms, respectivamente. No custo, foram de 0,04810\,ms para
 Dijkstra e 0,13395\,ms para Bellman-Ford.
 
-Em todas as comparações, os algoritmos retornaram o mesmo custo ótimo.
-A mediana de vértices expandidos foi 5 para Dijkstra e 27 para
-Bellman-Ford. Essa contagem não representa operações equivalentes:
-Dijkstra conta vértices amadurecidos, enquanto Bellman-Ford soma os
-vértices examinados nas passadas.
+Nos 117 pares com rota, Dijkstra e Bellman-Ford retornaram o mesmo custo
+mínimo nos três critérios. Nos 65 pares restantes, ambos indicaram a
+ausência de rota. A mediana de vértices processados foi 5 para Dijkstra
+e 27 para Bellman-Ford. Essa contagem não representa operações
+equivalentes: Dijkstra conta vértices amadurecidos, enquanto
+Bellman-Ford soma os vértices examinados nas passadas.
 
 \begin{table}[ht]
 \centering
@@ -528,6 +530,7 @@ Custo     & Bellman-Ford  & 0,13395 & 27 \\
 \end{figure}
 
 \section{Discussão}
+\label{sec:discussao}
 Neste experimento, Dijkstra apresentou menores medianas de tempo nos
 três critérios. Essa observação descreve apenas o snapshot avaliado:
 as buscas foram muito curtas, e o ambiente de execução não estava
@@ -536,11 +539,10 @@ generalizados para grafos maiores. Além disso, o número de nós
 expandidos usa definições diferentes entre os algoritmos e não deve
 ser interpretado como uma comparação direta da mesma quantidade de
 operações.
-\subsection{ Limitações}
-% Interpretação dos resultados, hipóteses dos pesos e limitações do modelo.\subsection{Limitações}
+\subsection{Limitações}
 \label{subsec:limitacoes}
 
-O sistema calcula rotas sobre um snapshot estático da malha viária de Belo Horizonte, armazenado localmente. Os resultados dependem da área coberta, da qualidade e da data desses dados e não refletem alterações posteriores nas ruas.
+O sistema calcula rotas sobre um snapshot estático e local do bairro Coração Eucarístico. Embora o catálogo contenha pontos de interesse distribuídos por Belo Horizonte, os identificadores viários desses pontos não correspondem aos nós do snapshot; o vínculo pelo vértice mais próximo não permite interpretar as rotas resultantes como trajetos corretos entre regiões distantes da cidade. Os resultados também dependem da área coberta, da qualidade e da data dos dados e não refletem alterações posteriores nas ruas.
 
 O modelo não considera condições de trânsito em tempo real, acidentes, obras, semáforos, horários de pico ou interdições temporárias. O tempo de percurso é estimado a partir da distância das vias e das velocidades registradas ou assumidas no conjunto de dados, portanto pode diferir do tempo observado durante uma viagem.
 
@@ -548,9 +550,12 @@ Os pontos de interesse são associados ao vértice viário mais próximo de suas
 
 O custo financeiro também é uma estimativa. Seu cálculo usa parâmetros fixos de consumo e preço de combustível, sem considerar diferenças entre veículos, variações no preço da gasolina, pedágios, estacionamento ou outros gastos.
 
+Como o consumo e o preço do combustível são constantes para todas as arestas, o custo calculado é proporcional à distância. Portanto, neste modelo, minimizar o custo financeiro produz o mesmo conjunto de rotas ótimas que minimizar a distância; o critério de custo não representa diferenças de consumo ou de preço entre trechos.
+
 Por fim, a avaliação de desempenho realizada utiliza apenas o snapshot disponível, que contém 14 vértices e 26 arestas direcionadas. Portanto, os tempos medidos descrevem esse grafo pequeno e não permitem concluir, isoladamente, como os algoritmos se comportariam em redes viárias maiores. Os resultados também podem variar conforme o hardware e as condições de execução.
 
 \section{Conclusão e Trabalhos Futuros}
+\label{sec:conclusao}
 
 Este trabalho desenvolveu um sistema de busca de rotas sobre um grafo
 viário dirigido, com interface para seleção da origem, do destino, do
@@ -577,10 +582,8 @@ e incorporar informações de trânsito e condições viárias mais detalhadas.
 
 \subsection{Contribuições individuais}
 
-As contribuições abaixo foram identificadas nos arquivos e commits do
-repositório. A equipe deve confirmar a correspondência entre os autores
-do Git e os integrantes, bem como acrescentar contribuições que não
-estejam registradas em commits.
+As contribuições foram descritas a partir das alterações e dos commits
+registrados no repositório.
 
 \begin{itemize}
     \item Vinícius Simões: implementação da leitura dos dados do mapa,
@@ -593,15 +596,20 @@ estejam registradas em commits.
     Streamlit e Folium.
     \item Maria Clara: documentação e diagramas, integração da interface
     com os algoritmos e preparação do script de benchmark.
+    \item Henrique Neves: criação da suíte automatizada
+    \texttt{codigo/test\_rotas.py}, com testes do modelo, da importação
+    dos dados e dos algoritmos de rota, incluindo casos de borda e
+    comparação com resultados conhecidos.
 
 \end{itemize}
 
 Todos os integrantes participaram da revisão final do artigo e da
-preparação da apresentação. % Mantenha esta frase somente após confirmação.
-
+preparação da apresentação.
 
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
-
+\section*{Declaração de uso de inteligência artificial}
+Para a revisão textual deste artigo, foi utilizada a ferramenta
+OpenAI Codex, baseada no modelo GPT-6 \cite{openaiCodex2026}.
 \end{document}

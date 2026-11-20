@@ -280,9 +280,104 @@ entre dois vértices. As arestas são direcionadas para representar o
 sentido de circulação. Cada uma possui atributos de distância, tempo
 estimado e custo estimado, que podem ser utilizados como pesos na
 busca de uma rota, conforme o critério selecionado.
+
+\subsection{Estrutura de dados do grafo}
+\label{subsec:estrutura-grafo}
+
+O modelo foi implementado no módulo \texttt{grafo.py}, sem uso de
+bibliotecas prontas de grafos, por meio de quatro classes:
+\texttt{Vertice}, \texttt{Aresta}, \texttt{Grafo} e
+\texttt{ResultadoRota}. Um \texttt{Vertice} guarda um identificador,
+um nome opcional e as coordenadas geográficas em latitude e longitude.
+Uma \texttt{Aresta} liga um vértice de origem a um vértice de destino e
+armazena a distância em metros, a velocidade considerada em km/h, o
+tempo estimado em segundos e o custo estimado em reais.
+
+A classe \texttt{Grafo} representa a rede por listas de adjacência. Um
+dicionário associa o identificador de cada vértice à lista de arestas
+que partem dele, e um segundo dicionário indexa as arestas pelo próprio
+identificador. Com essa organização, os algoritmos obtêm as arestas de
+saída de um vértice sem percorrer o restante do grafo, e o espaço
+ocupado é proporcional a $|V|+|E|$.
+
+Um trecho de mão dupla é representado por duas arestas, uma em cada
+sentido; a aresta no sentido inverso recebe o sufixo \texttt{\_rev} no
+identificador. Um trecho de mão única gera apenas a aresta no sentido
+registrado. O modelo também admite arestas paralelas, isto é, mais de
+uma aresta com a mesma origem e o mesmo destino, desde que cada uma
+tenha identificador próprio.
+
+O módulo \texttt{grafo.py} não lê arquivos, não acessa a internet e não
+depende da interface. Os pesos de cada aresta são calculados em
+\texttt{mapa.py} durante a montagem do grafo, conforme as
+Equações~\ref{eq:tempo} e~\ref{eq:custo}, e são apenas armazenados e
+validados pelo modelo.
+
+\subsection{Pesos e validações}
+\label{subsec:pesos-validacoes}
+
+O método \texttt{getPeso(criterio)} da classe \texttt{Aresta} devolve o
+peso usado na busca: a distância, em metros, para o critério
+\texttt{distancia}; o tempo, em segundos, para \texttt{tempo}; e o custo
+estimado, em reais, para \texttt{custo}. Os nomes dos critérios são
+definidos como constantes no módulo, e um critério desconhecido gera
+erro, em vez de ser tratado silenciosamente como um dos três.
+
+Para que os pesos sejam compatíveis com o algoritmo de Dijkstra, o
+modelo rejeita, no momento da criação da aresta, distâncias, tempos e
+custos negativos, velocidades menores ou iguais a zero e valores não
+finitos, como \texttt{NaN} e infinito. Os vértices com latitude fora do
+intervalo $[-90, 90]$ ou longitude fora de $[-180, 180]$ também são
+rejeitados. O grafo recusa duas arestas com o mesmo identificador e
+dois vértices com o mesmo identificador e coordenadas diferentes. Com
+essas regras, dados inconsistentes são detectados durante a montagem do
+grafo, antes de qualquer busca.
+
+\subsection{Resultado da busca}
+\label{subsec:resultado-busca}
+
+Dijkstra e Bellman-Ford devolvem uma instância de
+\texttt{ResultadoRota}. Ela contém a situação da busca, a sequência
+ordenada de arestas do caminho, os totais de distância, tempo e custo e
+a quantidade de nós expandidos. A Tabela~\ref{tab:situacoes} resume as
+três situações possíveis.
+
+\begin{table}[ht]
+\centering
+\caption{Situações de um \texttt{ResultadoRota}.}
+\label{tab:situacoes}
+\begin{tabular}{|l|p{0.62\textwidth}|}
+\hline
+Situação & Significado \\
+\hline
+\texttt{encontrada} & Existe caminho; os totais são preenchidos. Quando a
+origem é igual ao destino, o caminho é vazio e os totais são zero. \\
+\hline
+\texttt{inalcancavel} & A solicitação é válida, mas não há caminho
+dirigido da origem ao destino; o caminho é vazio e os totais ficam
+indisponíveis. \\
+\hline
+\texttt{invalida} & A origem, o destino ou o critério não existem no
+grafo ou, no Bellman-Ford, há ciclo de peso negativo alcançável; o
+caminho é vazio e os totais ficam indisponíveis. \\
+\hline
+\end{tabular}
+\end{table}
+
+Os resultados são criados por três construtores:
+\texttt{aPartirDoCaminho}, \texttt{inalcancavel} e \texttt{invalida}. O
+primeiro calcula os totais somando os pesos das arestas do caminho, o
+que garante que a distância, o tempo e o custo informados correspondem
+às arestas retornadas. Esse construtor também verifica se o caminho é
+contínuo, ou seja, se o destino de cada aresta é a origem da seguinte.
+O método \texttt{getVerticesCaminho} devolve a sequência de vértices
+percorridos, usada pela interface para desenhar a rota no mapa.
+
 \subsection{Diagramas}
 A Figura~\ref{fig:diagrama-classes} apresenta a estrutura estática do
-sistema, com suas classes, atributos, operações e relacionamentos.
+sistema, com suas classes, atributos, operações e relacionamentos. As
+enumerações \texttt{Criterio} e \texttt{Situacao} representam as
+constantes de critério e de situação definidas em \texttt{grafo.py}.
 
 \begin{figure}[htbp]
     \centering

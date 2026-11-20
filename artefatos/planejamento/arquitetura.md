@@ -6,8 +6,8 @@ A arquitetura implementada mantém módulos pequenos para facilitar a manutenç�
 
 | Arquivo | Responsabilidade | Stack / Bibliotecas |
 | --- | --- | --- |
-| `codigo/grafo.py` | Estrutura do grafo próprio (sem NetworkX), entidades (`Vertice`, `Aresta`, `Grafo`, `ResultadoRota`), pesos por critério e cálculos geográficos puros (Haversine) | Python padrão (`math`, `typing`) |
-| `codigo/mapa.py` | Leitura, validação e montagem do grafo a partir do snapshot OSM e POIs | Python padrão (`json`, `typing`) |
+| `codigo/grafo.py` | Estrutura do grafo próprio (sem NetworkX), entidades (`Vertice`, `Aresta`, `Grafo`, `ResultadoRota`), validação dos pesos, consulta do peso por critério (`getPeso`) e constantes de critério e situação | Python padrão (`math`, `typing`) |
+| `codigo/mapa.py` | Leitura, validação e montagem do grafo a partir do snapshot OSM e POIs; cálculo dos pesos de cada aresta (distância por Haversine, tempo e custo); associação de POIs ao vértice mais próximo; busca opcional de POIs no Nominatim | Python padrão (`json`, `math`, `typing`) e `requests` |
 | `codigo/rotas.py` | Implementação de Dijkstra e Bellman-Ford (relaxamento, predecessores e reconstrução de caminhos mínimos) | Python padrão (`heapq`, `typing`) |
 | `codigo/app.py` | Interface gráfica interativa: renderização do mapa, seleção de parâmetros e exibição das métricas | **Streamlit + Folium** (`streamlit`, `folium`, `streamlit-folium`) |
 | `codigo/tests/` | Testes de unidade e integração; benchmarks permanecem como etapa experimental separada | `pytest`, `time` |
@@ -35,7 +35,7 @@ Leitura e construção são funções em `mapa.py`. A busca pelo menor caminho �
 4. `rotas.py` executa `calcularRotaDijkstra` ou `calcularRotaBellmanFord` usando o grafo preparado e devolve `ResultadoRota`.
 5. `app.py` renderiza o traçado do caminho sobre o mapa Folium e apresenta as métricas consolidadas na barra lateral do Streamlit.
 
-`grafo.py` não conhece arquivos ou interface. `rotas.py` utiliza o modelo e os cálculos geográficos, sem ler JSON, importar a interface ou consultar a internet. A duração de uma busca é cronometrada estritamente fora do algoritmo.
+`grafo.py` não conhece arquivos ou interface: os pesos chegam prontos de `mapa.py` e o modelo apenas os armazena e valida (finitos e não negativos). `rotas.py` utiliza o modelo, obtendo os pesos por `Aresta.getPeso(criterio)`, sem ler JSON, importar a interface ou consultar a internet. O resultado de uma busca usa uma das situações `encontrada`, `inalcancavel` ou `invalida`, definidas como constantes em `grafo.py`. A duração de uma busca é cronometrada estritamente fora do algoritmo.
 
 ## Regras do problema e Critérios de Otimização
 

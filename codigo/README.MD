@@ -11,6 +11,7 @@ A implementação fica diretamente nesta pasta, com os módulos Python e a subpa
 | `rotas.py` | Busca de caminho mínimo com Dijkstra e Bellman-Ford para distância, tempo ou custo | Python padrão (`heapq`, `typing`) | Integrante 3, com revisão do integrante 4 |
 | `app.py` | Interface gráfica interativa: mapa interativo, seleção de POIs, traçado da rota e métricas | **Streamlit + Folium** (`streamlit-folium`) | Integrante 5 |
 | `tests/test_rotas_dijkstra_bellman_ford.py` e `tests/test_mapa.py` | Testes automatizados do grafo, importação, algoritmos, consistência de custo e benchmarks | `pytest`, `time` | Integrante 6, com testes de todos |
+| `test_rotas.py` | Testes independentes de modelo, importação e busca (Dijkstra e Bellman-Ford) com grafos pequenos e respostas ótimas conhecidas, sem interface e sem rede. Rodar: `python -m pytest codigo/test_rotas.py -v` | `pytest` | Integrante 4 |
 | `dados` | Arquivos `mapa.json` (OSM Coreu), `pontos_interesse.json` e documentação de origem | JSON / GeoJSON | Integrante 1 |
 
 Os módulos mantêm uma arquitetura enxuta, sem camadas desnecessárias de serviços ou wrappers.

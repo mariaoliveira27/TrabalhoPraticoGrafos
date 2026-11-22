@@ -1,6 +1,7 @@
 # Dependências do Projeto - Trabalho Prático de Grafos (Tema 2)
 # Execução da interface interativa e mapas
-streamlit>=1.30.0
+# (1.39+ por causa dos ícones Material: parâmetro icon dos botões e :material/...: nos textos)
+streamlit>=1.39.0
 folium>=0.15.0
 streamlit-folium>=0.16.0
 

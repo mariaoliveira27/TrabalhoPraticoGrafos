@@ -1,10 +1,10 @@
 {
-  "commit_base": "b00e512412fc8cb5e717a3227f7f08fdb50c3360",
+  "commit_base": "cf43ce19f20716e41e1ee7756dbe180fb7358360",
   "estado_codigo": "benchmark executado em working tree com alterações não commitadas; use o script e snapshot registrados para reprodução",
-  "instante_utc": "2026-11-18T18:45:29.319222+00:00",
+  "instante_utc": "2026-11-22T16:40:29.863142+00:00",
   "snapshot": "codigo\\dados\\mapa.json",
   "seed_ordem_pares": 20261118,
-  "pares": 182,
+  "pares": 1122,
   "criterios": [
     "distancia",
     "tempo",
@@ -14,13 +14,13 @@
   "aquecimento": "uma execução por algoritmo para cada par e critério, não cronometrada",
   "cronometro": "time.perf_counter; somente chamada da função de busca e reconstrução",
   "grafo": {
-    "vertices": 14,
-    "arestas_direcionadas": 26
+    "vertices": 34,
+    "arestas_direcionadas": 68
   },
-  "python": "3.12.6 (tags/v3.12.6:a4a2d2b, Sep  6 2024, 20:11:23) [MSC v.1940 64 bit (AMD64)]",
-  "plataforma": "Windows-11-10.0.26200-SP0",
-  "processador": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
-  "cpu_logicas": 4,
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "plataforma": "Windows-11-10.0.26300-SP0",
+  "processador": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
+  "cpu_logicas": 12,
   "memoria_ram": "não coletada automaticamente",
   "nos_expandidos": "Dijkstra conta vértices amadurecidos; Bellman-Ford conta vértices examinados nas passadas",
   "custos_conferidos_iguais": true

@@ -28,8 +28,8 @@ implements Dijkstra's and Bellman-Ford algorithms and allows the user
 to select distance, estimated travel time, or estimated fuel cost as
 the optimization criterion. The evaluation used a local OpenStreetMap
 snapshot of the Coração Eucarístico neighborhood in Belo Horizonte,
-containing 14 vertices and 26 directed edges. Both algorithms were
-evaluated on 182 ordered vertex pairs, with 20 timed repetitions for
+containing 34 vertices and 68 directed edges. Both algorithms were
+evaluated on 1,122 ordered vertex pairs, with 20 timed repetitions for
 each pair and criterion. They returned equal route costs in the
 evaluated queries. Dijkstra had lower median execution times for all
 three criteria in this snapshot. These measurements describe a small
@@ -43,8 +43,8 @@ direcionado e ponderado. A ferramenta implementa os algoritmos de
 Dijkstra e Bellman-Ford e permite selecionar distância, tempo estimado
 ou custo financeiro estimado como critério de otimização. A avaliação
 utilizou um snapshot local do OpenStreetMap referente ao bairro Coração
-Eucarístico, em Belo Horizonte, com 14 vértices e 26 arestas
-direcionadas. Os algoritmos foram avaliados em 182 pares ordenados de
+Eucarístico, em Belo Horizonte, com 34 vértices e 68 arestas
+direcionadas. Os algoritmos foram avaliados em 1.122 pares ordenados de
 vértices, com 20 medições para cada par e critério. Ambos retornaram
 custos iguais nas consultas avaliadas. Nesse snapshot, Dijkstra
 apresentou menores medianas de tempo nos três critérios. Como o grafo
@@ -72,12 +72,12 @@ métricas da rota.
 A ferramenta foi desenvolvida em Python e utiliza um grafo direcionado
 e ponderado construído a partir de dados locais do OpenStreetMap. O
 snapshot usado na avaliação corresponde a um recorte do bairro Coração
-Eucarístico, em Belo Horizonte, com 14 vértices e 26 arestas
+Eucarístico, em Belo Horizonte, com 34 vértices e 68 arestas
 direcionadas. Embora a aplicação tenha como contexto o roteamento em
 Belo Horizonte, os experimentos deste artigo se limitam a essa malha
 local.
 
-A avaliação compara os dois algoritmos em 182 pares ordenados de
+A avaliação compara os dois algoritmos em 1.122 pares ordenados de
 vértices, considerando os critérios de distância, tempo estimado e
 custo financeiro. Para cada combinação de par, critério e algoritmo,
 foram realizadas 20 medições cronometradas, após uma execução de
@@ -221,26 +221,37 @@ Seção~\ref{sec:avaliacao}.
 \subsection{Área de estudo}
 O problema de roteamento considerado tem como contexto o município de
 Belo Horizonte, Minas Gerais. Entretanto, o snapshot viário usado na
-avaliação cobre apenas um recorte do bairro Coração Eucarístico. Esse
-recorte contém 14 vértices e 26 arestas direcionadas; portanto, os
+avaliação cobre apenas um recorte do bairro Coração Eucarístico e
+arredores. Esse recorte contém 34 vértices e 68 arestas direcionadas; portanto, os
 experimentos deste artigo não representam toda a malha viária do
 município.
 
 \subsection{Fonte e coleta dos dados}
-Os metadados do arquivo local \texttt{mapa.json} identificam o
-OpenStreetMap (OSM) como fonte e registram a data de extração de
-15 de novembro de 2026. A documentação mantida pela equipe não registra
-qual ferramenta ou consulta foi usada para obter originalmente esse
-snapshot. O conjunto contém 14 vértices e 15 registros de aresta. Os
+O arquivo local \texttt{mapa.json} é gerado pelo script
+\texttt{codigo/dados/gerar\_mapa.py}, que consulta a Overpass API do
+OpenStreetMap (OSM). A base consultada é de 22 de novembro de 2026,
+data registrada nos metadados do arquivo. O recorte reúne os
+cruzamentos de três vias paralelas (Avenida Dom José Gaspar, Rua Dom
+Lúcio Antunes e Rua Dom Joaquim Silvério) com seis transversais, a
+sudeste do campus, e as vias do lado oeste do campus até a Avenida Itaú
+(Avenida Edgar da Mata Machado e as ruas entre ela e o campus).
+Somam-se a portaria de veículos da PUC Minas, um ponto da via interna
+do campus e dois pontos de quebra em trechos curvos, totalizando
+34 vértices e 50 registros de aresta. Cada vértice
+guarda os identificadores dos nós do OSM que lhe deram origem. Os
 dados do OpenStreetMap são distribuídos sob a licença Open Database
 License (ODbL), com atribuição aos colaboradores do projeto.
 
 \subsection{Preparação dos dados}
 A aplicação carrega a malha viária a partir do arquivo local
-\texttt{mapa.json}. Os 15 registros de aresta são convertidos em
-26 arestas direcionadas: os trechos de mão dupla são representados por
-uma aresta em cada sentido. O snapshot também registra informações de
-direção das vias e, quando disponíveis, limites de velocidade.
+\texttt{mapa.json}. Os 50 registros de aresta são convertidos em
+68 arestas direcionadas: os trechos de mão dupla são representados por
+uma aresta em cada sentido. O sentido de circulação de cada trecho vem
+das etiquetas de mão única do OSM. Como os trechos do recorte não têm
+limite de velocidade registrado no OSM, adotou-se o limite padrão do
+Código de Trânsito Brasileiro (art.~61) correspondente à classe da via
+no OSM: 30\,km/h para vias locais e 40\,km/h para coletoras; na via
+interna do campus, 20\,km/h.
 
 O catálogo local de pontos de interesse, armazenado em
 \texttt{pontos\_interesse.json}, contém 12 registros. O catálogo inclui
@@ -267,7 +278,7 @@ Dado um ponto de origem, um ponto de destino e um critério de
 otimização, o sistema deve encontrar um percurso válido na malha
 viária local. São considerados os critérios de distância, tempo
 estimado e custo financeiro. A rota é calculada sobre o snapshot local,
-que contém 14 vértices e 26 arestas direcionadas.
+que contém 34 vértices e 68 arestas direcionadas.
 
 \section{Modelagem}
 \label{sec:modelagem}
@@ -280,9 +291,104 @@ entre dois vértices. As arestas são direcionadas para representar o
 sentido de circulação. Cada uma possui atributos de distância, tempo
 estimado e custo estimado, que podem ser utilizados como pesos na
 busca de uma rota, conforme o critério selecionado.
+
+\subsection{Estrutura de dados do grafo}
+\label{subsec:estrutura-grafo}
+
+O modelo foi implementado no módulo \texttt{grafo.py}, sem uso de
+bibliotecas prontas de grafos, por meio de quatro classes:
+\texttt{Vertice}, \texttt{Aresta}, \texttt{Grafo} e
+\texttt{ResultadoRota}. Um \texttt{Vertice} guarda um identificador,
+um nome opcional e as coordenadas geográficas em latitude e longitude.
+Uma \texttt{Aresta} liga um vértice de origem a um vértice de destino e
+armazena a distância em metros, a velocidade considerada em km/h, o
+tempo estimado em segundos e o custo estimado em reais.
+
+A classe \texttt{Grafo} representa a rede por listas de adjacência. Um
+dicionário associa o identificador de cada vértice à lista de arestas
+que partem dele, e um segundo dicionário indexa as arestas pelo próprio
+identificador. Com essa organização, os algoritmos obtêm as arestas de
+saída de um vértice sem percorrer o restante do grafo, e o espaço
+ocupado é proporcional a $|V|+|E|$.
+
+Um trecho de mão dupla é representado por duas arestas, uma em cada
+sentido; a aresta no sentido inverso recebe o sufixo \texttt{\_rev} no
+identificador. Um trecho de mão única gera apenas a aresta no sentido
+registrado. O modelo também admite arestas paralelas, isto é, mais de
+uma aresta com a mesma origem e o mesmo destino, desde que cada uma
+tenha identificador próprio.
+
+O módulo \texttt{grafo.py} não lê arquivos, não acessa a internet e não
+depende da interface. Os pesos de cada aresta são calculados em
+\texttt{mapa.py} durante a montagem do grafo, conforme as
+Equações~\ref{eq:tempo} e~\ref{eq:custo}, e são apenas armazenados e
+validados pelo modelo.
+
+\subsection{Pesos e validações}
+\label{subsec:pesos-validacoes}
+
+O método \texttt{getPeso(criterio)} da classe \texttt{Aresta} devolve o
+peso usado na busca: a distância, em metros, para o critério
+\texttt{distancia}; o tempo, em segundos, para \texttt{tempo}; e o custo
+estimado, em reais, para \texttt{custo}. Os nomes dos critérios são
+definidos como constantes no módulo, e um critério desconhecido gera
+erro, em vez de ser tratado silenciosamente como um dos três.
+
+Para que os pesos sejam compatíveis com o algoritmo de Dijkstra, o
+modelo rejeita, no momento da criação da aresta, distâncias, tempos e
+custos negativos, velocidades menores ou iguais a zero e valores não
+finitos, como \texttt{NaN} e infinito. Os vértices com latitude fora do
+intervalo $[-90, 90]$ ou longitude fora de $[-180, 180]$ também são
+rejeitados. O grafo recusa duas arestas com o mesmo identificador e
+dois vértices com o mesmo identificador e coordenadas diferentes. Com
+essas regras, dados inconsistentes são detectados durante a montagem do
+grafo, antes de qualquer busca.
+
+\subsection{Resultado da busca}
+\label{subsec:resultado-busca}
+
+Dijkstra e Bellman-Ford devolvem uma instância de
+\texttt{ResultadoRota}. Ela contém a situação da busca, a sequência
+ordenada de arestas do caminho, os totais de distância, tempo e custo e
+a quantidade de nós expandidos. A Tabela~\ref{tab:situacoes} resume as
+três situações possíveis.
+
+\begin{table}[ht]
+\centering
+\caption{Situações de um \texttt{ResultadoRota}.}
+\label{tab:situacoes}
+\begin{tabular}{|l|p{0.62\textwidth}|}
+\hline
+Situação & Significado \\
+\hline
+\texttt{encontrada} & Existe caminho; os totais são preenchidos. Quando a
+origem é igual ao destino, o caminho é vazio e os totais são zero. \\
+\hline
+\texttt{inalcancavel} & A solicitação é válida, mas não há caminho
+dirigido da origem ao destino; o caminho é vazio e os totais ficam
+indisponíveis. \\
+\hline
+\texttt{invalida} & A origem, o destino ou o critério não existem no
+grafo ou, no Bellman-Ford, há ciclo de peso negativo alcançável; o
+caminho é vazio e os totais ficam indisponíveis. \\
+\hline
+\end{tabular}
+\end{table}
+
+Os resultados são criados por três construtores:
+\texttt{aPartirDoCaminho}, \texttt{inalcancavel} e \texttt{invalida}. O
+primeiro calcula os totais somando os pesos das arestas do caminho, o
+que garante que a distância, o tempo e o custo informados correspondem
+às arestas retornadas. Esse construtor também verifica se o caminho é
+contínuo, ou seja, se o destino de cada aresta é a origem da seguinte.
+O método \texttt{getVerticesCaminho} devolve a sequência de vértices
+percorridos, usada pela interface para desenhar a rota no mapa.
+
 \subsection{Diagramas}
 A Figura~\ref{fig:diagrama-classes} apresenta a estrutura estática do
-sistema, com suas classes, atributos, operações e relacionamentos.
+sistema, com suas classes, atributos, operações e relacionamentos. As
+enumerações \texttt{Criterio} e \texttt{Situacao} representam as
+constantes de critério e de situação definidas em \texttt{grafo.py}.
 
 \begin{figure}[htbp]
     \centering
@@ -469,8 +575,8 @@ as métricas retornadas pelo sistema.
 \label{sec:avaliacao}
 \subsection{Protocolo experimental}
 A comparação foi realizada sobre o snapshot local da malha viária,
-composto por 14 vértices e 26 arestas direcionadas. Foram avaliados
-os 182 pares ordenados distintos de origem e destino, considerando
+composto por 34 vértices e 68 arestas direcionadas. Foram avaliados
+os 1.122 pares ordenados distintos de origem e destino, considerando
 os critérios de distância, tempo e custo. Para cada combinação de
 par, critério e algoritmo, foi realizada uma execução de aquecimento
 e 20 execuções cronometradas.
@@ -478,28 +584,27 @@ e 20 execuções cronometradas.
 A medição utilizou \texttt{time.perf\_counter} e incluiu a busca e a
 reconstrução do caminho, excluindo o carregamento dos dados e a
 renderização da interface. Os resultados de Dijkstra e Bellman-Ford
-foram comparados quanto à situação da busca e ao custo retornado. Dos
-182 pares ordenados, 117 possuem rota no grafo e 65 são inalcançáveis
-devido à orientação das vias de mão única. A rede é conexa quando se
-ignoram as direções das arestas. As buscas inalcançáveis foram mantidas
-na medição do tempo.
+foram comparados quanto à situação da busca e ao custo retornado. Os
+1.122 pares ordenados possuem rota no grafo: mesmo respeitando a
+orientação das vias de mão única, todo vértice alcança todos os
+demais, ou seja, o grafo é fortemente conexo.
 
-O benchmark foi executado em Windows 11 com Python 3.12.6, em um
-processador Intel64 Family 6 Model 142 com quatro processadores lógicos.
+O benchmark foi executado em Windows 11 com Python 3.12.10, em um
+processador AMD64 Family 25 Model 80 com 12 processadores lógicos.
 A memória RAM não foi registrada e a máquina não estava isolada de
 outras tarefas. Assim, as medições descrevem esse ambiente de execução.
 
 \subsection{Resultados}
 A Figura~\ref{fig:benchmark-tempo} apresenta o tempo mediano por busca.
-Na distância, as medianas foram de 0,04870\,ms para Dijkstra e
-0,13070\,ms para Bellman-Ford. No critério tempo, foram de 0,05100\,ms
-e 0,13510\,ms, respectivamente. No custo, foram de 0,04810\,ms para
-Dijkstra e 0,13395\,ms para Bellman-Ford.
+Na distância, as medianas foram de 0,03010\,ms para Dijkstra e
+0,13190\,ms para Bellman-Ford. No critério tempo, foram de 0,03060\,ms
+e 0,13760\,ms, respectivamente. No custo, foram de 0,03070\,ms para
+Dijkstra e 0,13880\,ms para Bellman-Ford.
 
-Nos 117 pares com rota, Dijkstra e Bellman-Ford retornaram o mesmo custo
-mínimo nos três critérios. Nos 65 pares restantes, ambos indicaram a
-ausência de rota. A mediana de vértices processados foi 5 para Dijkstra
-e 27 para Bellman-Ford. Essa contagem não representa operações
+Nos 1.122 pares, Dijkstra e Bellman-Ford retornaram o mesmo custo
+mínimo nos três critérios. A mediana de vértices processados foi 18
+para Dijkstra e 153,5 para Bellman-Ford. Essa
+contagem não representa operações
 equivalentes: Dijkstra conta vértices amadurecidos, enquanto
 Bellman-Ford soma os vértices examinados nas passadas.
 
@@ -511,12 +616,12 @@ Bellman-Ford soma os vértices examinados nas passadas.
 \toprule
 Critério & Algoritmo & Tempo mediano (ms) & Nós expandidos, mediana \\
 \midrule
-Distância & Dijkstra      & 0,04870 & 5  \\
-Distância & Bellman-Ford  & 0,13070 & 27 \\
-Tempo     & Dijkstra      & 0,05100 & 5  \\
-Tempo     & Bellman-Ford  & 0,13510 & 27 \\
-Custo     & Dijkstra      & 0,04810 & 5  \\
-Custo     & Bellman-Ford  & 0,13395 & 27 \\
+Distância & Dijkstra      & 0,03010 & 18    \\
+Distância & Bellman-Ford  & 0,13190 & 153,5 \\
+Tempo     & Dijkstra      & 0,03060 & 18    \\
+Tempo     & Bellman-Ford  & 0,13760 & 153,5 \\
+Custo     & Dijkstra      & 0,03070 & 18    \\
+Custo     & Bellman-Ford  & 0,13880 & 153,5 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -552,7 +657,7 @@ O custo financeiro também é uma estimativa. Seu cálculo usa parâmetros fixos
 
 Como o consumo e o preço do combustível são constantes para todas as arestas, o custo calculado é proporcional à distância. Portanto, neste modelo, minimizar o custo financeiro produz o mesmo conjunto de rotas ótimas que minimizar a distância; o critério de custo não representa diferenças de consumo ou de preço entre trechos.
 
-Por fim, a avaliação de desempenho realizada utiliza apenas o snapshot disponível, que contém 14 vértices e 26 arestas direcionadas. Portanto, os tempos medidos descrevem esse grafo pequeno e não permitem concluir, isoladamente, como os algoritmos se comportariam em redes viárias maiores. Os resultados também podem variar conforme o hardware e as condições de execução.
+Por fim, a avaliação de desempenho realizada utiliza apenas o snapshot disponível, que contém 34 vértices e 68 arestas direcionadas. Portanto, os tempos medidos descrevem esse grafo pequeno e não permitem concluir, isoladamente, como os algoritmos se comportariam em redes viárias maiores. Os resultados também podem variar conforme o hardware e as condições de execução.
 
 \section{Conclusão e Trabalhos Futuros}
 \label{sec:conclusao}
@@ -563,8 +668,8 @@ critério de otimização e do algoritmo de busca. O sistema contempla os
 critérios de distância, tempo estimado e custo financeiro e implementa
 Dijkstra e Bellman-Ford.
 
-No benchmark realizado sobre o snapshot local, composto por 14 vértices
-e 26 arestas direcionadas, os dois algoritmos encontraram os mesmos
+No benchmark realizado sobre o snapshot local, composto por 34 vértices
+e 68 arestas direcionadas, os dois algoritmos encontraram os mesmos
 custos para as consultas avaliadas. Nesse experimento, Dijkstra apresentou
 menores tempos medianos nos três critérios. Esse resultado se limita ao
 grafo e ao ambiente avaliados e não permite generalizações sobre redes

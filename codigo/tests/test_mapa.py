@@ -19,7 +19,13 @@ from mapa import (
     associar_poi_ao_no_mais_proximo,
     construir_grafo,
     buscar_poi_api,
-    geocodificar_endereco
+    geocodificar_endereco,
+    LIMITE_ASSOCIACAO_METROS,
+    RAIO_TERRA_METROS,
+    associar_poi_ao_vertice,
+    calcular_bbox_area,
+    poi_dentro_da_area,
+    separar_pois_por_area
 )
 
 
@@ -420,3 +426,165 @@ def test_construir_grafo_com_dados_reais():
         for criterio in (CRITERIO_DISTANCIA, CRITERIO_TEMPO, CRITERIO_CUSTO):
             peso = aresta.getPeso(criterio)
             assert _math.isfinite(peso) and peso >= 0
+
+
+# ---------------------------------------------------------------------------
+# Área do mapa: POI -> vértice com distância, limite de associação e bbox de busca
+# ---------------------------------------------------------------------------
+
+# Coordenadas da Praça da Liberdade no catálogo: fora do Coração Eucarístico
+PRACA_DA_LIBERDADE = {
+    "id": "praca_da_liberdade",
+    "nome": "Praça da Liberdade (Circuito Cultural)",
+    "coordenadas": [-19.932, -43.9378],
+}
+
+
+@pytest.fixture(scope="module")
+def grafo_real():
+    return construir_grafo(carregar_mapa(ARQUIVO_MAPA))
+
+
+def _poi_deslocado(vertice, nome, norte_m=0.0, leste_m=0.0):
+    """POI a norte_m metros ao norte e leste_m metros a leste do vértice (negativo = sul/oeste)."""
+    latitude = vertice.latitude + _math.degrees(norte_m / RAIO_TERRA_METROS)
+    longitude = vertice.longitude + _math.degrees(
+        leste_m / (RAIO_TERRA_METROS * _math.cos(_math.radians(vertice.latitude)))
+    )
+    return {"id": nome, "nome": nome, "coordenadas": [latitude, longitude]}
+
+
+def test_poi_nas_coordenadas_de_um_vertice_tem_distancia_zero(grafo_real):
+    for vertice in grafo_real.vertices.values():
+        poi = {"id": "p", "nome": "Ponto", "coordenadas": [vertice.latitude, vertice.longitude]}
+        id_vertice, distancia_m = associar_poi_ao_vertice(poi, grafo_real)
+        assert id_vertice == vertice.id
+        assert distancia_m == pytest.approx(0.0, abs=1e-6)
+
+
+def _vertice_mais_ao_norte(grafo):
+    # andando para o norte a partir dele, nenhum outro vértice fica mais perto
+    return max(grafo.vertices.values(), key=lambda v: v.latitude)
+
+
+def test_associacao_usa_coordenadas_e_ignora_no_viario_associado(grafo_real):
+    # o campo do catálogo está desatualizado; aqui ele aponta para outro vértice do grafo
+    no_local, outro = list(grafo_real.vertices.values())[:2]
+    poi = {
+        "id": "poi_teste",
+        "nome": "Local de teste",
+        "coordenadas": [no_local.latitude, no_local.longitude],
+        "no_viario_associado": outro.id,
+    }
+    copia = dict(poi)
+    assert associar_poi_ao_vertice(poi, grafo_real)[0] == no_local.id
+    assert poi == copia  # a função não altera o POI
+
+
+def test_praca_da_liberdade_fora_da_area(grafo_real):
+    _id_vertice, distancia_m = associar_poi_ao_vertice(PRACA_DA_LIBERDADE, grafo_real)
+    assert distancia_m > 4000  # a Praça da Liberdade fica a uns 5 km do Coração Eucarístico
+    assert poi_dentro_da_area(PRACA_DA_LIBERDADE, grafo_real) is False
+    assert separar_pois_por_area([PRACA_DA_LIBERDADE], grafo_real) == ([], [PRACA_DA_LIBERDADE])
+
+
+def test_puc_do_catalogo_fica_dentro_da_area(grafo_real):
+    # coordenadas do POI da PUC no catálogo (Cantina): a via interna do campus deixa o
+    # vértice mais próximo a menos de 200 m; a Av. Dom José Gaspar passa a 209 m
+    puc = {"id": "puc_minas_coreu", "nome": "PUC Minas", "coordenadas": [-19.9229, -43.9926]}
+    assert poi_dentro_da_area(puc, grafo_real)
+
+
+def test_underground_fica_dentro_da_area(grafo_real):
+    # "Underground Black Pub", na Av. Itaú (bairro Dom Cabral), com as coordenadas do OSM:
+    # o recorte cobre o lado oeste do campus até ele
+    pub = {"id": "underground", "nome": "Underground Black Pub", "coordenadas": [-19.91908, -43.99452]}
+    assert poi_dentro_da_area(pub, grafo_real)
+
+
+def test_limite_de_associacao_e_de_200_metros(grafo_real):
+    assert LIMITE_ASSOCIACAO_METROS == 200
+    norte = _vertice_mais_ao_norte(grafo_real)
+    assert poi_dentro_da_area(_poi_deslocado(norte, "a 199,9 m", norte_m=199.9), grafo_real)
+    assert not poi_dentro_da_area(_poi_deslocado(norte, "a 200,1 m", norte_m=200.1), grafo_real)
+    # exatamente no limite ainda conta como dentro
+    no_limite = _poi_deslocado(norte, "no limite", norte_m=200.0)
+    id_vertice, distancia_m = associar_poi_ao_vertice(no_limite, grafo_real)
+    assert id_vertice == norte.id
+    assert distancia_m == pytest.approx(200.0, abs=1e-6)
+    assert poi_dentro_da_area(no_limite, grafo_real, limite_m=distancia_m)
+
+
+def test_separar_pois_por_area_mantem_a_ordem(grafo_real):
+    norte = _vertice_mais_ao_norte(grafo_real)
+    pois = [
+        _poi_deslocado(norte, "a 250 m", norte_m=250.0),
+        _poi_deslocado(norte, "no vértice"),
+        _poi_deslocado(norte, "a 199 m", norte_m=199.0),
+        PRACA_DA_LIBERDADE,
+    ]
+    dentro, fora = separar_pois_por_area(pois, grafo_real)
+    assert [p["id"] for p in dentro] == ["no vértice", "a 199 m"]
+    assert [p["id"] for p in fora] == ["a 250 m", "praca_da_liberdade"]
+
+
+def test_bbox_da_area_contem_todos_os_vertices(grafo_real):
+    bbox = calcular_bbox_area(grafo_real)
+    for vertice in carregar_mapa(ARQUIVO_MAPA)["vertices"]:
+        assert bbox["min_lat"] < vertice["latitude"] < bbox["max_lat"]
+        assert bbox["min_lon"] < vertice["longitude"] < bbox["max_lon"]
+
+
+def test_bbox_da_area_tem_margem_do_limite_de_associacao(grafo_real):
+    bbox = calcular_bbox_area(grafo_real)
+    vertices = list(grafo_real.vertices.values())
+    mais_ao_norte = max(vertices, key=lambda v: v.latitude)
+    mais_a_leste = max(vertices, key=lambda v: v.longitude)
+    margem_norte = calcular_distancia_haversine(
+        mais_ao_norte.latitude, mais_ao_norte.longitude, bbox["max_lat"], mais_ao_norte.longitude
+    )
+    margem_leste = calcular_distancia_haversine(
+        mais_a_leste.latitude, mais_a_leste.longitude, mais_a_leste.latitude, bbox["max_lon"]
+    )
+    assert margem_norte == pytest.approx(LIMITE_ASSOCIACAO_METROS, abs=0.5)
+    assert margem_leste == pytest.approx(LIMITE_ASSOCIACAO_METROS, abs=0.5)
+
+
+def test_todo_ponto_dentro_da_area_cai_na_bbox_de_busca(grafo_real):
+    # a busca online nunca pode cortar um local que os selects aceitariam
+    bbox = calcular_bbox_area(grafo_real)
+    distancia_m = LIMITE_ASSOCIACAO_METROS * 0.999
+    for vertice in grafo_real.vertices.values():
+        for angulo in range(0, 360, 45):
+            norte_m = distancia_m * _math.cos(_math.radians(angulo))
+            leste_m = distancia_m * _math.sin(_math.radians(angulo))
+            lat, lon = _poi_deslocado(vertice, "p", norte_m, leste_m)["coordenadas"]
+            assert bbox["min_lat"] <= lat <= bbox["max_lat"]
+            assert bbox["min_lon"] <= lon <= bbox["max_lon"]
+
+
+def test_geocodificar_endereco_restringe_a_busca_a_bbox(monkeypatch):
+    parametros_enviados = []
+
+    class RespostaSemResultados:
+        status_code = 200
+
+        def json(self):
+            return []
+
+    def get_falso(url, params=None, headers=None, timeout=None):
+        parametros_enviados.append(params)
+        return RespostaSemResultados()
+
+    monkeypatch.setattr("mapa.requests.get", get_falso)
+    bbox = {"min_lat": -19.93, "max_lat": -19.92, "min_lon": -43.99, "max_lon": -43.98}
+
+    assert geocodificar_endereco("Rua Dom José Gaspar, 500", bbox=bbox) is None
+    assert geocodificar_endereco("Rua Dom José Gaspar, 500", bbox=bbox, somente_na_bbox=False) is None
+    assert geocodificar_endereco("Rua Dom José Gaspar, 500") is None
+    restrita, preferencia, sem_bbox = parametros_enviados
+    assert restrita["bounded"] == 1
+    assert restrita["viewbox"] == "-43.99,-19.92,-43.98,-19.93"
+    # só preferência: o resultado de fora volta e o app avisa onde ele fica
+    assert preferencia["viewbox"] == restrita["viewbox"] and "bounded" not in preferencia
+    assert "viewbox" not in sem_bbox and "bounded" not in sem_bbox

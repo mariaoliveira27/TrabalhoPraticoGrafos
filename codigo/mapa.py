@@ -1,7 +1,8 @@
 """
 Módulo de dados viários e pontos de interesse (POIs).
 Responsável pela leitura de dados locais, geolocalização (Haversine),
-associação de POIs aos nós viários, busca via API (OpenStreetMap) e montagem do Grafo.
+associação de POIs aos nós viários, delimitação da área coberta pelo grafo,
+busca via API (OpenStreetMap) e montagem do Grafo.
 """
 
 import json
@@ -34,6 +35,11 @@ BBOX_COREU = {
     "min_lon": -43.9960,
     "max_lon": -43.9750,
 }
+
+# Distância máxima (m, em linha reta) entre um POI e o vértice mais próximo do grafo.
+# Acima disso o POI está fora da área do mapa e não pode ser origem nem destino de rota.
+# Também é a margem da bbox de busca calculada a partir dos vértices (calcular_bbox_area).
+LIMITE_ASSOCIACAO_METROS = 200
 
 
 def calcular_distancia_haversine(
@@ -180,6 +186,11 @@ def remover_poi_cache(identificador: str, caminho_pois: str) -> bool:
     return True
 
 
+def _montar_viewbox(bbox: Dict[str, float]) -> str:
+    """Converte a bbox (min/max de lat e lon) no parâmetro 'viewbox' do Nominatim."""
+    return f"{bbox['min_lon']},{bbox['max_lat']},{bbox['max_lon']},{bbox['min_lat']}"
+
+
 def buscar_poi_api(
     termo_busca: str,
     bbox: Optional[Dict[str, float]] = None,
@@ -197,14 +208,13 @@ def buscar_poi_api(
         bbox = BBOX_BH
 
     url = "https://nominatim.openstreetmap.org/search"
-    viewbox = f"{bbox['min_lon']},{bbox['max_lat']},{bbox['max_lon']},{bbox['min_lat']}"
 
     parametros = {
         "q": termo_busca,
         "format": "json",
         "addressdetails": 1,
         "bounded": 1,
-        "viewbox": viewbox,
+        "viewbox": _montar_viewbox(bbox),
         "limit": 8
     }
 
@@ -257,10 +267,15 @@ def buscar_poi_api(
 
 def geocodificar_endereco(
     endereco: str,
-    timeout_segundos: float = 5.0
+    timeout_segundos: float = 5.0,
+    bbox: Optional[Dict[str, float]] = None,
+    somente_na_bbox: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Busca coordenadas a partir de um endereço textual em Belo Horizonte.
+    Com bbox (mesmo formato de BBOX_BH), só aceita resultados dentro dela; com
+    somente_na_bbox=False, a bbox apenas dá preferência aos resultados de dentro e
+    quem chama confere a área (assim dá para avisar onde fica um endereço de fora).
     Retorna o dicionário do POI montado ou None se não encontrado.
     """
     if not endereco or not endereco.strip():
@@ -277,6 +292,10 @@ def geocodificar_endereco(
         "addressdetails": 1,
         "limit": 1
     }
+    if bbox is not None:
+        parametros["viewbox"] = _montar_viewbox(bbox)
+        if somente_na_bbox:
+            parametros["bounded"] = 1
     headers = {
         "User-Agent": "TrabalhoPraticoGrafos-PUCMinas/1.0 (academic-project)"
     }
@@ -310,6 +329,35 @@ def geocodificar_endereco(
     return None
 
 
+def _coordenadas_do_poi(poi: Dict[str, Any]) -> Tuple[float, float]:
+    """Lê (latitude, longitude) do POI; lança ValueError se as coordenadas forem inválidas."""
+    coord_poi = poi.get("coordenadas")
+    if not coord_poi or len(coord_poi) < 2:
+        raise ValueError(f"POI '{poi.get('nome')}' possui coordenadas inválidas.")
+    return coord_poi[0], coord_poi[1]
+
+
+def _vertice_mais_proximo(
+    lat: float,
+    lon: float,
+    vertices: Dict[str, Vertice]
+) -> Tuple[str, float]:
+    """Devolve (id, distância em metros) do vértice mais próximo; em empate, o primeiro."""
+    menor_distancia = float("inf")
+    no_mais_proximo_id = ""
+
+    for v_id, vertice in vertices.items():
+        dist = calcular_distancia_haversine(
+            lat, lon,
+            vertice.latitude, vertice.longitude
+        )
+        if dist < menor_distancia:
+            menor_distancia = dist
+            no_mais_proximo_id = v_id
+
+    return no_mais_proximo_id, menor_distancia
+
+
 def associar_poi_ao_no_mais_proximo(
     poi: Dict[str, Any],
     vertices: Dict[str, Vertice]
@@ -321,25 +369,90 @@ def associar_poi_ao_no_mais_proximo(
     if not vertices:
         raise ValueError("Dicionário de vértices está vazio.")
 
-    coord_poi = poi.get("coordenadas")
-    if not coord_poi or len(coord_poi) < 2:
-        raise ValueError(f"POI '{poi.get('nome')}' possui coordenadas inválidas.")
-
-    lat_poi, lon_poi = coord_poi[0], coord_poi[1]
-
-    menor_distancia = float("inf")
-    no_mais_proximo_id = ""
-
-    for v_id, vertice in vertices.items():
-        dist = calcular_distancia_haversine(
-            lat_poi, lon_poi,
-            vertice.latitude, vertice.longitude
-        )
-        if dist < menor_distancia:
-            menor_distancia = dist
-            no_mais_proximo_id = v_id
-
+    lat_poi, lon_poi = _coordenadas_do_poi(poi)
+    no_mais_proximo_id, _distancia_m = _vertice_mais_proximo(lat_poi, lon_poi, vertices)
     return no_mais_proximo_id
+
+
+def associar_poi_ao_vertice(poi: Dict[str, Any], grafo: Grafo) -> Tuple[str, float]:
+    """
+    Associa o POI ao vértice do grafo mais próximo das coordenadas dele.
+
+    Devolve (id_vertice, distancia_m): distancia_m é a distância em linha reta
+    (Haversine) entre o POI e esse vértice. Usa sempre as coordenadas do POI e ignora
+    o campo 'no_viario_associado' do catálogo, que está desatualizado (aponta para ids
+    que não existem no grafo). Não altera o POI.
+    """
+    if not grafo.vertices:
+        raise ValueError("O grafo não possui vértices.")
+
+    lat_poi, lon_poi = _coordenadas_do_poi(poi)
+    return _vertice_mais_proximo(lat_poi, lon_poi, grafo.vertices)
+
+
+def poi_dentro_da_area(
+    poi: Dict[str, Any],
+    grafo: Grafo,
+    limite_m: float = LIMITE_ASSOCIACAO_METROS
+) -> bool:
+    """Indica se o POI está a até limite_m metros do vértice mais próximo do grafo."""
+    _id_vertice, distancia_m = associar_poi_ao_vertice(poi, grafo)
+    return distancia_m <= limite_m
+
+
+def separar_pois_por_area(
+    pois: List[Dict[str, Any]],
+    grafo: Grafo,
+    limite_m: float = LIMITE_ASSOCIACAO_METROS
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    Separa os POIs em (dentro, fora) da área do mapa, mantendo a ordem recebida.
+    Só os de dentro podem ser origem ou destino de uma rota.
+    """
+    dentro: List[Dict[str, Any]] = []
+    fora: List[Dict[str, Any]] = []
+    for poi in pois:
+        if poi_dentro_da_area(poi, grafo, limite_m):
+            dentro.append(poi)
+        else:
+            fora.append(poi)
+    return dentro, fora
+
+
+def calcular_bbox_area(
+    grafo: Grafo,
+    margem_m: float = LIMITE_ASSOCIACAO_METROS
+) -> Dict[str, float]:
+    """
+    Bounding box dos vértices do grafo alargada em margem_m metros para cada lado.
+
+    Mesmo formato de BBOX_BH, pronta para buscar_poi_api e geocodificar_endereco.
+    Com a margem padrão, todo ponto a até LIMITE_ASSOCIACAO_METROS de um vértice
+    fica dentro dela.
+    """
+    if not grafo.vertices:
+        raise ValueError("O grafo não possui vértices.")
+
+    latitudes = [v.latitude for v in grafo.vertices.values()]
+    longitudes = [v.longitude for v in grafo.vertices.values()]
+
+    margem_lat = math.degrees(margem_m / RAIO_TERRA_METROS)
+    min_lat = min(latitudes) - margem_lat
+    max_lat = max(latitudes) + margem_lat
+
+    # Um grau de longitude encolhe com o cosseno da latitude: usar a latitude mais
+    # afastada do equador garante que a margem nunca fique menor que margem_m.
+    latitude_extrema = max(abs(min_lat), abs(max_lat))
+    margem_lon = math.degrees(
+        margem_m / (RAIO_TERRA_METROS * math.cos(math.radians(latitude_extrema)))
+    )
+
+    return {
+        "min_lat": min_lat,
+        "max_lat": max_lat,
+        "min_lon": min(longitudes) - margem_lon,
+        "max_lon": max(longitudes) + margem_lon,
+    }
 
 
 def construir_grafo(

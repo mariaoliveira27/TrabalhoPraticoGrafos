@@ -64,3 +64,7 @@ O código fica diretamente em `codigo`: `grafo.py`, `mapa.py`, `rotas.py`, `app.
 ## Executar
 
 Instale as dependências de `requirements.txt`. Para iniciar a interface: `streamlit run codigo/app.py`. Para rodar todos os testes: `python -m pytest codigo -v`. Só os testes de modelo, importação e busca (sem interface e sem rede): `python -m pytest codigo/test_rotas.py -v`.
+
+## Apresentação
+
+O vídeo de apresentação esta no link do Drive `https://drive.google.com/file/d/157jAGkfma9YaXYArkWpoCriQF-E4-zvr/view?usp=sharing`

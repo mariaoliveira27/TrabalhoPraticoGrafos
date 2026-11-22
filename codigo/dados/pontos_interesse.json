@@ -130,5 +130,35 @@
     ],
     "endereco": "Av. Otacílio Negrão de Lima, 8000 - Pampulha",
     "no_viario_associado": "no_zoologico_bh"
+  },
+  {
+    "id": "end_452817536",
+    "nome": "A granel",
+    "categoria": "lazer",
+    "coordenadas": [
+      -19.9258482,
+      -43.9900785
+    ],
+    "endereco": "Rua Coração Eucarístico de Jesus, 265 - Coração Eucarístico - Belo Horizonte"
+  },
+  {
+    "id": "end_222811609",
+    "nome": "Ponto",
+    "categoria": "ponto",
+    "coordenadas": [
+      -19.9267672,
+      -43.9901954
+    ],
+    "endereco": "Rua Padre Demerval Gomes - Coração Eucarístico - Belo Horizonte"
+  },
+  {
+    "id": "osm_way_1066225413",
+    "nome": "Underground Black Pub (Dom Cabral)",
+    "categoria": "pub",
+    "coordenadas": [
+      -19.9190796,
+      -43.9945215
+    ],
+    "endereco": "Avenida Itaú - Dom Cabral - Belo Horizonte"
   }
 ]

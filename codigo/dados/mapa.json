@@ -1,222 +1,942 @@
 {
   "metadados": {
-    "regiao": "Coração Eucarístico, Belo Horizonte - MG",
-    "fonte": "OpenStreetMap Snapshot",
+    "regiao": "Coração Eucarístico e arredores, Belo Horizonte - MG",
+    "descricao": "Recorte em volta da PUC Minas: a grade a sudeste do campus (Av. Dom José Gaspar, R. Dom Lúcio Antunes e R. Dom Joaquim Silvério com seis transversais) e o lado oeste do campus até a Av. Itaú, com a portaria de carros da PUC e um ponto da via interna.",
+    "fonte": "OpenStreetMap, consulta à Overpass API (codigo/dados/gerar_mapa.py)",
     "licenca": "Open Database License (ODbL)",
-    "data_extracao": "2026-11-15T00:00:00Z",
+    "atribuicao": "© colaboradores do OpenStreetMap",
+    "data_extracao": "2026-11-22T15:27:21Z",
+    "velocidades": "maxspeed do OSM quando existe; senão o limite do CTB (art. 61) pela classe da via: residential 30, tertiary 40, secondary e primary 60, trunk 80 km/h; via interna do campus (service) 20 km/h",
     "bounding_box": {
-      "min_lat": -19.9320,
-      "max_lat": -19.9180,
-      "min_lon": -43.9960,
-      "max_lon": -43.9750
+      "min_lat": -19.9273201,
+      "max_lat": -19.9188418,
+      "min_lon": -43.9960214,
+      "max_lon": -43.9877256
     }
   },
   "vertices": [
     {
-      "id": "no_dom_jose_gaspar_norte",
-      "nome": "Cruzamento R. Dom José Gaspar x R. Carangola",
-      "latitude": -19.9208,
-      "longitude": -43.9940
+      "id": "no_gaspar_coracao",
+      "nome": "Av. Dom José Gaspar x R. Coração Eucarístico de Jesus",
+      "latitude": -19.9244646,
+      "longitude": -43.9914017,
+      "osm_nos": [
+        29685423,
+        8201639217,
+        8201639218
+      ]
     },
     {
-      "id": "no_dom_jose_gaspar_puc",
-      "nome": "R. Dom José Gaspar (Acesso Principal PUC Minas)",
-      "latitude": -19.9229,
-      "longitude": -43.9926
+      "id": "no_gaspar_edgar",
+      "nome": "Av. Dom José Gaspar x Av. Edgar da Mata Machado",
+      "latitude": -19.9264677,
+      "longitude": -43.9931695,
+      "osm_nos": [
+        29685427,
+        1464715063,
+        2314806486,
+        8201632815,
+        8201632816
+      ]
     },
     {
-      "id": "no_dom_jose_gaspar_centro",
-      "nome": "Cruzamento R. Dom José Gaspar x R. Padre Pedro Evangelista",
-      "latitude": -19.9233,
-      "longitude": -43.9905
+      "id": "no_itau_edna",
+      "nome": "Av. Itaú x R. Edna Maria da Paixão",
+      "latitude": -19.9188418,
+      "longitude": -43.9941118,
+      "osm_nos": [
+        29685459
+      ]
     },
     {
-      "id": "no_dom_jose_gaspar_sul",
-      "nome": "R. Dom José Gaspar x R. Dom Joaquim Silvério",
-      "latitude": -19.9238,
-      "longitude": -43.9918
+      "id": "no_lucio_crisostomo",
+      "nome": "R. Dom Lúcio Antunes x R. Padre João Crisóstomo",
+      "latitude": -19.9228494,
+      "longitude": -43.9885388,
+      "osm_nos": [
+        63012584
+      ]
     },
     {
-      "id": "no_praca_federacao",
-      "nome": "Praça da Federação (Rotatória)",
-      "latitude": -19.9242,
-      "longitude": -43.9930
+      "id": "no_gaspar_crisostomo",
+      "nome": "Av. Dom José Gaspar x R. Padre João Crisóstomo",
+      "latitude": -19.9221915,
+      "longitude": -43.989357,
+      "osm_nos": [
+        63012598
+      ]
     },
     {
-      "id": "no_padre_pedro_esportes",
-      "nome": "R. Padre Pedro Evangelista (Acesso Esportes PUC)",
-      "latitude": -19.9254,
-      "longitude": -43.9912
+      "id": "no_gaspar_rossini",
+      "nome": "Av. Dom José Gaspar x R. Padre Rossini Cândido",
+      "latitude": -19.9229591,
+      "longitude": -43.9900117,
+      "osm_nos": [
+        63012622
+      ]
     },
     {
-      "id": "no_coreu_jesus_norte",
-      "nome": "R. Coração Eucarístico de Jesus x R. Dom José Gaspar",
-      "latitude": -19.9226,
-      "longitude": -43.9914
+      "id": "no_lucio_rossini",
+      "nome": "R. Dom Lúcio Antunes x R. Padre Rossini Cândido",
+      "latitude": -19.9236045,
+      "longitude": -43.9892183,
+      "osm_nos": [
+        63012635
+      ]
     },
     {
-      "id": "no_coreu_jesus_centro",
-      "nome": "R. Coração Eucarístico de Jesus x R. Dom Joaquim Silvério",
-      "latitude": -19.9244,
-      "longitude": -43.9899
+      "id": "no_joaquim_demerval",
+      "nome": "R. Dom Joaquim Silvério x R. Padre Demerval Gomes",
+      "latitude": -19.9265796,
+      "longitude": -43.9904272,
+      "osm_nos": [
+        63012680
+      ]
     },
     {
-      "id": "no_coreu_jesus_leste",
-      "nome": "R. Coração Eucarístico de Jesus (Comércio / EPA)",
-      "latitude": -19.9221,
-      "longitude": -43.9898
+      "id": "no_joaquim_aristides",
+      "nome": "R. Dom Joaquim Silvério x R. Dom Aristides Porto",
+      "latitude": -19.9273201,
+      "longitude": -43.9911067,
+      "osm_nos": [
+        63012713
+      ]
     },
     {
-      "id": "no_dom_joaquim_centro",
-      "nome": "R. Dom Joaquim Silvério (Comércio Central)",
-      "latitude": -19.9235,
-      "longitude": -43.9912
+      "id": "no_lucio_coracao",
+      "nome": "R. Dom Lúcio Antunes x R. Coração Eucarístico de Jesus",
+      "latitude": -19.9251681,
+      "longitude": -43.9905908,
+      "osm_nos": [
+        63012724
+      ]
     },
     {
-      "id": "no_dom_joaquim_sul",
-      "nome": "R. Dom Joaquim Silvério x Av. 31 de Março",
-      "latitude": -19.9248,
-      "longitude": -43.9902
+      "id": "no_gaspar_demerval",
+      "nome": "Av. Dom José Gaspar x R. Padre Demerval Gomes",
+      "latitude": -19.9252834,
+      "longitude": -43.9920607,
+      "osm_nos": [
+        63012735
+      ]
     },
     {
-      "id": "no_av31_marco_norte",
-      "nome": "Av. Presidente Juscelino Kubitschek (31 de Março) - Viaduto",
-      "latitude": -19.9240,
-      "longitude": -43.9860
+      "id": "no_gaspar_aristides",
+      "nome": "Av. Dom José Gaspar x R. Dom Aristides Porto",
+      "latitude": -19.9260318,
+      "longitude": -43.9927246,
+      "osm_nos": [
+        63012746
+      ]
     },
     {
-      "id": "no_av31_marco_sul",
-      "nome": "Av. Presidente Juscelino Kubitschek - Acesso Gameleira",
-      "latitude": -19.9270,
-      "longitude": -43.9850
+      "id": "no_lucio_pedro",
+      "nome": "R. Dom Lúcio Antunes x R. Padre Pedro Evangelista",
+      "latitude": -19.9243628,
+      "longitude": -43.9898878,
+      "osm_nos": [
+        63012762
+      ]
     },
     {
-      "id": "no_metro_gameleira",
-      "nome": "Acesso Estação Metrô Gameleira / Expominas",
-      "latitude": -19.9298,
-      "longitude": -43.9855
+      "id": "no_gaspar_pedro",
+      "nome": "Av. Dom José Gaspar x R. Padre Pedro Evangelista",
+      "latitude": -19.923711,
+      "longitude": -43.9907113,
+      "osm_nos": [
+        63012773
+      ]
+    },
+    {
+      "id": "no_joaquim_pedro",
+      "nome": "R. Dom Joaquim Silvério x R. Padre Pedro Evangelista",
+      "latitude": -19.9250411,
+      "longitude": -43.9890801,
+      "osm_nos": [
+        63012783
+      ]
+    },
+    {
+      "id": "no_joaquim_crisostomo",
+      "nome": "R. Dom Joaquim Silvério x R. Padre João Crisóstomo",
+      "latitude": -19.9234907,
+      "longitude": -43.9877256,
+      "osm_nos": [
+        63012840
+      ]
+    },
+    {
+      "id": "no_joaquim_rossini",
+      "nome": "R. Dom Joaquim Silvério x R. Padre Rossini Cândido",
+      "latitude": -19.9242494,
+      "longitude": -43.9883924,
+      "osm_nos": [
+        63012851
+      ]
+    },
+    {
+      "id": "no_lucio_aristides",
+      "nome": "R. Dom Lúcio Antunes x R. Dom Aristides Porto",
+      "latitude": -19.9266741,
+      "longitude": -43.9919125,
+      "osm_nos": [
+        63012857
+      ]
+    },
+    {
+      "id": "no_lucio_demerval",
+      "nome": "R. Dom Lúcio Antunes x R. Padre Demerval Gomes",
+      "latitude": -19.9259176,
+      "longitude": -43.9912562,
+      "osm_nos": [
+        63012862
+      ]
+    },
+    {
+      "id": "no_rotatoria_dom_serafim",
+      "nome": "Praça Cardeal Dom Serafim (rotatória: R. Dom Joaquim Silvério x R. Coração Eucarístico de Jesus)",
+      "latitude": -19.9258282,
+      "longitude": -43.9897607,
+      "osm_nos": [
+        452817528,
+        4987462489,
+        4987462490,
+        4987462491,
+        4987462492,
+        4987462493,
+        4987462494,
+        4987462495,
+        4987462496,
+        4987462497,
+        4987462498,
+        4987462499,
+        4987462500,
+        4987462501,
+        4987462502,
+        4987462503,
+        4987462504,
+        4987462505,
+        4987462506,
+        4987462507,
+        5396364925
+      ]
+    },
+    {
+      "id": "no_rotatoria_edgar_itau_ivan",
+      "nome": "Rotatória: Av. Edgar da Mata Machado x Av. Itaú x R. Ivan Moraes de Andrade",
+      "latitude": -19.9205416,
+      "longitude": -43.9956822,
+      "osm_nos": [
+        1464715052,
+        2712860389,
+        2712860390,
+        2712860396,
+        2712860399,
+        2712860401,
+        2712860403,
+        2712860406,
+        2712860410,
+        2712860412,
+        2712860413,
+        2712860415,
+        2712860420,
+        2712860422,
+        2712860424,
+        2712860428,
+        5396364998,
+        6145910333
+      ]
+    },
+    {
+      "id": "no_edgar_frambach",
+      "nome": "Av. Edgar da Mata Machado x R. Madre Beatriz Frambach",
+      "latitude": -19.9216093,
+      "longitude": -43.9955558,
+      "osm_nos": [
+        2314787231
+      ]
+    },
+    {
+      "id": "no_lombaerde_edna",
+      "nome": "R. Padre Júlio Lombaerde x R. Edna Maria da Paixão",
+      "latitude": -19.91914,
+      "longitude": -43.9937602,
+      "osm_nos": [
+        2314787250
+      ]
+    },
+    {
+      "id": "no_lombaerde_frambach",
+      "nome": "R. Padre Júlio Lombaerde x R. Madre Beatriz Frambach",
+      "latitude": -19.9216081,
+      "longitude": -43.9943375,
+      "osm_nos": [
+        2314787252
+      ]
+    },
+    {
+      "id": "no_lombaerde_mazzarello_ivan",
+      "nome": "R. Padre Júlio Lombaerde x R. Madre Mazzarello x R. Ivan Moraes de Andrade",
+      "latitude": -19.9209324,
+      "longitude": -43.9943437,
+      "osm_nos": [
+        2314787256,
+        2314787268
+      ]
+    },
+    {
+      "id": "no_edgar_mazzarello",
+      "nome": "Av. Edgar da Mata Machado x R. Madre Mazzarello",
+      "latitude": -19.9209737,
+      "longitude": -43.9955839,
+      "osm_nos": [
+        2314787266
+      ]
+    },
+    {
+      "id": "no_itau_gattoni",
+      "nome": "Av. Itaú x R. Osvaldo Gattoni",
+      "latitude": -19.9197135,
+      "longitude": -43.9948379,
+      "osm_nos": [
+        2314787267
+      ]
+    },
+    {
+      "id": "no_itau_sao_pedro",
+      "nome": "Av. Itaú x R. São Pedro Julião",
+      "latitude": -19.9192263,
+      "longitude": -43.9944264,
+      "osm_nos": [
+        2712860371
+      ]
+    },
+    {
+      "id": "no_lombaerde_sao_pedro",
+      "nome": "R. Padre Júlio Lombaerde x R. São Pedro Julião",
+      "latitude": -19.9196067,
+      "longitude": -43.993963,
+      "osm_nos": [
+        2712860376
+      ]
+    },
+    {
+      "id": "no_ivan_gattoni",
+      "nome": "R. Ivan Moraes de Andrade x R. Osvaldo Gattoni",
+      "latitude": -19.920335,
+      "longitude": -43.9948441,
+      "osm_nos": [
+        2744660640
+      ]
+    },
+    {
+      "id": "no_edgar_curva",
+      "nome": "Av. Edgar da Mata Machado (curva junto ao campus)",
+      "latitude": -19.9240573,
+      "longitude": -43.9960214,
+      "osm_nos": [
+        29685431,
+        94879399,
+        94879407,
+        1464715061,
+        4987462483,
+        4987462484,
+        8878241770
+      ]
+    },
+    {
+      "id": "no_lombaerde_curva",
+      "nome": "R. Padre Júlio Lombaerde (curva)",
+      "latitude": -19.9204114,
+      "longitude": -43.9944739,
+      "osm_nos": [
+        2314787245
+      ]
+    },
+    {
+      "id": "no_portaria_puc",
+      "nome": "Portaria da PUC Minas (Av. Dom José Gaspar)",
+      "latitude": -19.9238181,
+      "longitude": -43.9908069,
+      "osm_nos": [
+        8878373449
+      ]
+    },
+    {
+      "id": "no_puc_via_interna",
+      "nome": "PUC Minas (via interna do campus)",
+      "latitude": -19.9234099,
+      "longitude": -43.9912977,
+      "osm_nos": [
+        7794420795
+      ]
     }
   ],
   "arestas": [
     {
-      "id": "e_djg_norte_puc",
-      "origem": "no_dom_jose_gaspar_norte",
-      "destino": "no_dom_jose_gaspar_puc",
-      "nome_rua": "Rua Dom José Gaspar",
+      "id": "e_edgar_curva__edgar_frambach",
+      "origem": "no_edgar_curva",
+      "destino": "no_edgar_frambach",
+      "nome_rua": "Avenida Edgar da Mata Machado",
       "velocidade_kmh": 40.0,
-      "oneway": false
+      "oneway": true,
+      "osm_vias": [
+        4674280,
+        656032054
+      ]
     },
     {
-      "id": "e_djg_puc_coreu_norte",
-      "origem": "no_dom_jose_gaspar_puc",
-      "destino": "no_coreu_jesus_norte",
-      "nome_rua": "Rua Dom José Gaspar",
+      "id": "e_edgar_curva__gaspar_edgar",
+      "origem": "no_edgar_curva",
+      "destino": "no_gaspar_edgar",
+      "nome_rua": "Avenida Edgar da Mata Machado",
+      "velocidade_kmh": 40.0,
+      "oneway": false,
+      "osm_vias": [
+        4674280,
+        329130954,
+        656032062,
+        959558442,
+        959560263,
+        959560264,
+        959560265,
+        959560951,
+        959560952
+      ]
+    },
+    {
+      "id": "e_rotatoria_edgar_itau_ivan__edgar_curva",
+      "origem": "no_rotatoria_edgar_itau_ivan",
+      "destino": "no_edgar_curva",
+      "nome_rua": "Avenida Edgar da Mata Machado",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        133116566,
+        656032062,
+        959570120
+      ]
+    },
+    {
+      "id": "e_edgar_frambach__edgar_mazzarello",
+      "origem": "no_edgar_frambach",
+      "destino": "no_edgar_mazzarello",
+      "nome_rua": "Avenida Edgar da Mata Machado",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        656032054,
+        959570121
+      ]
+    },
+    {
+      "id": "e_lombaerde_frambach__edgar_frambach",
+      "origem": "no_lombaerde_frambach",
+      "destino": "no_edgar_frambach",
+      "nome_rua": "Rua Madre Beatriz Frambach",
       "velocidade_kmh": 30.0,
-      "oneway": false
+      "oneway": true,
+      "osm_vias": [
+        222521026
+      ]
     },
     {
-      "id": "e_djg_puc_praca",
-      "origem": "no_dom_jose_gaspar_puc",
-      "destino": "no_praca_federacao",
-      "nome_rua": "Acesso Praça da Federação",
+      "id": "e_edgar_mazzarello__lombaerde_mazzarello_ivan",
+      "origem": "no_edgar_mazzarello",
+      "destino": "no_lombaerde_mazzarello_ivan",
+      "nome_rua": "Rua Madre Mazzarello",
       "velocidade_kmh": 30.0,
-      "oneway": false
+      "oneway": true,
+      "osm_vias": [
+        265330297
+      ]
     },
     {
-      "id": "e_praca_sul",
-      "origem": "no_praca_federacao",
-      "destino": "no_dom_jose_gaspar_sul",
-      "nome_rua": "Rua Dom José Gaspar",
+      "id": "e_edgar_mazzarello__rotatoria_edgar_itau_ivan",
+      "origem": "no_edgar_mazzarello",
+      "destino": "no_rotatoria_edgar_itau_ivan",
+      "nome_rua": "Avenida Edgar da Mata Machado",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        959570121
+      ]
+    },
+    {
+      "id": "e_gaspar_aristides__gaspar_demerval",
+      "origem": "no_gaspar_aristides",
+      "destino": "no_gaspar_demerval",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        222362086,
+        959558446
+      ]
+    },
+    {
+      "id": "e_gaspar_edgar__gaspar_aristides",
+      "origem": "no_gaspar_edgar",
+      "destino": "no_gaspar_aristides",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        222362086
+      ]
+    },
+    {
+      "id": "e_lucio_aristides__gaspar_aristides",
+      "origem": "no_lucio_aristides",
+      "destino": "no_gaspar_aristides",
+      "nome_rua": "Rua Dom Aristides Porto",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        673531663
+      ]
+    },
+    {
+      "id": "e_gaspar_demerval__gaspar_coracao",
+      "origem": "no_gaspar_demerval",
+      "destino": "no_gaspar_coracao",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        656032063
+      ]
+    },
+    {
+      "id": "e_gaspar_coracao__gaspar_edgar",
+      "origem": "no_gaspar_coracao",
+      "destino": "no_gaspar_edgar",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        881918553,
+        959558447
+      ]
+    },
+    {
+      "id": "e_gaspar_coracao__lucio_coracao",
+      "origem": "no_gaspar_coracao",
+      "destino": "no_lucio_coracao",
+      "nome_rua": "Rua Coração Eucarístico de Jesus",
+      "velocidade_kmh": 40.0,
+      "oneway": false,
+      "osm_vias": [
+        4674282
+      ]
+    },
+    {
+      "id": "e_portaria_puc__gaspar_coracao",
+      "origem": "no_portaria_puc",
+      "destino": "no_gaspar_coracao",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        222525682
+      ]
+    },
+    {
+      "id": "e_gaspar_crisostomo__gaspar_rossini",
+      "origem": "no_gaspar_crisostomo",
+      "destino": "no_gaspar_rossini",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        222525682
+      ]
+    },
+    {
+      "id": "e_lucio_crisostomo__gaspar_crisostomo",
+      "origem": "no_lucio_crisostomo",
+      "destino": "no_gaspar_crisostomo",
+      "nome_rua": "Rua Padre João Crisóstomo",
       "velocidade_kmh": 30.0,
-      "oneway": true
+      "oneway": true,
+      "osm_vias": [
+        8765942
+      ]
     },
     {
-      "id": "e_sul_esportes",
-      "origem": "no_dom_jose_gaspar_sul",
-      "destino": "no_padre_pedro_esportes",
+      "id": "e_gaspar_demerval__lucio_demerval",
+      "origem": "no_gaspar_demerval",
+      "destino": "no_lucio_demerval",
+      "nome_rua": "Rua Padre Demerval Gomes",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        8765961
+      ]
+    },
+    {
+      "id": "e_gaspar_rossini__gaspar_pedro",
+      "origem": "no_gaspar_rossini",
+      "destino": "no_gaspar_pedro",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        222525682
+      ]
+    },
+    {
+      "id": "e_lucio_pedro__gaspar_pedro",
+      "origem": "no_lucio_pedro",
+      "destino": "no_gaspar_pedro",
       "nome_rua": "Rua Padre Pedro Evangelista",
       "velocidade_kmh": 30.0,
-      "oneway": false
+      "oneway": true,
+      "osm_vias": [
+        8765960
+      ]
     },
     {
-      "id": "e_esportes_dom_joaquim_sul",
-      "origem": "no_padre_pedro_esportes",
-      "destino": "no_dom_joaquim_sul",
-      "nome_rua": "Rua Dom Joaquim Silvério",
+      "id": "e_gaspar_pedro__portaria_puc",
+      "origem": "no_gaspar_pedro",
+      "destino": "no_portaria_puc",
+      "nome_rua": "Avenida Dom José Gaspar",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        222525682
+      ]
+    },
+    {
+      "id": "e_gaspar_rossini__lucio_rossini",
+      "origem": "no_gaspar_rossini",
+      "destino": "no_lucio_rossini",
+      "nome_rua": "Rua Padre Rossini Cândido",
       "velocidade_kmh": 30.0,
-      "oneway": false
+      "oneway": true,
+      "osm_vias": [
+        8765956
+      ]
     },
     {
-      "id": "e_coreu_norte_leste",
-      "origem": "no_coreu_jesus_norte",
-      "destino": "no_coreu_jesus_leste",
+      "id": "e_itau_edna__itau_sao_pedro",
+      "origem": "no_itau_edna",
+      "destino": "no_itau_sao_pedro",
+      "nome_rua": "Avenida Itaú",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        178897646
+      ]
+    },
+    {
+      "id": "e_itau_edna__lombaerde_edna",
+      "origem": "no_itau_edna",
+      "destino": "no_lombaerde_edna",
+      "nome_rua": "Rua Edna Maria da Paixão",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        279176321
+      ]
+    },
+    {
+      "id": "e_itau_gattoni__itau_sao_pedro",
+      "origem": "no_itau_gattoni",
+      "destino": "no_itau_sao_pedro",
+      "nome_rua": "Avenida Itaú",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        178897646
+      ]
+    },
+    {
+      "id": "e_itau_gattoni__ivan_gattoni",
+      "origem": "no_itau_gattoni",
+      "destino": "no_ivan_gattoni",
+      "nome_rua": "Rua Osvaldo Gattoni",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        279176323
+      ]
+    },
+    {
+      "id": "e_itau_gattoni__rotatoria_edgar_itau_ivan",
+      "origem": "no_itau_gattoni",
+      "destino": "no_rotatoria_edgar_itau_ivan",
+      "nome_rua": "Avenida Itaú",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        178897646
+      ]
+    },
+    {
+      "id": "e_itau_sao_pedro__lombaerde_sao_pedro",
+      "origem": "no_itau_sao_pedro",
+      "destino": "no_lombaerde_sao_pedro",
+      "nome_rua": "Rua São Pedro Julião",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        265652530
+      ]
+    },
+    {
+      "id": "e_ivan_gattoni__lombaerde_mazzarello_ivan",
+      "origem": "no_ivan_gattoni",
+      "destino": "no_lombaerde_mazzarello_ivan",
+      "nome_rua": "Rua Ivan Moraes de Andrade",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        269180854
+      ]
+    },
+    {
+      "id": "e_rotatoria_edgar_itau_ivan__ivan_gattoni",
+      "origem": "no_rotatoria_edgar_itau_ivan",
+      "destino": "no_ivan_gattoni",
+      "nome_rua": "Rua Ivan Moraes de Andrade",
+      "velocidade_kmh": 30.0,
+      "oneway": true,
+      "osm_vias": [
+        222521020
+      ]
+    },
+    {
+      "id": "e_joaquim_aristides__joaquim_demerval",
+      "origem": "no_joaquim_aristides",
+      "destino": "no_joaquim_demerval",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 40.0,
+      "oneway": false,
+      "osm_vias": [
+        8765975
+      ]
+    },
+    {
+      "id": "e_joaquim_aristides__lucio_aristides",
+      "origem": "no_joaquim_aristides",
+      "destino": "no_lucio_aristides",
+      "nome_rua": "Rua Dom Aristides Porto",
+      "velocidade_kmh": 40.0,
+      "oneway": false,
+      "osm_vias": [
+        945797130
+      ]
+    },
+    {
+      "id": "e_joaquim_crisostomo__joaquim_rossini",
+      "origem": "no_joaquim_crisostomo",
+      "destino": "no_joaquim_rossini",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        319379245
+      ]
+    },
+    {
+      "id": "e_joaquim_crisostomo__lucio_crisostomo",
+      "origem": "no_joaquim_crisostomo",
+      "destino": "no_lucio_crisostomo",
+      "nome_rua": "Rua Padre João Crisóstomo",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        945797128
+      ]
+    },
+    {
+      "id": "e_lucio_demerval__joaquim_demerval",
+      "origem": "no_lucio_demerval",
+      "destino": "no_joaquim_demerval",
+      "nome_rua": "Rua Padre Demerval Gomes",
+      "velocidade_kmh": 30.0,
+      "oneway": true,
+      "osm_vias": [
+        222811609
+      ]
+    },
+    {
+      "id": "e_rotatoria_dom_serafim__joaquim_demerval",
+      "origem": "no_rotatoria_dom_serafim",
+      "destino": "no_joaquim_demerval",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        279165754
+      ]
+    },
+    {
+      "id": "e_joaquim_rossini__joaquim_pedro",
+      "origem": "no_joaquim_rossini",
+      "destino": "no_joaquim_pedro",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        319379245
+      ]
+    },
+    {
+      "id": "e_joaquim_pedro__lucio_pedro",
+      "origem": "no_joaquim_pedro",
+      "destino": "no_lucio_pedro",
+      "nome_rua": "Rua Padre Pedro Evangelista",
+      "velocidade_kmh": 30.0,
+      "oneway": true,
+      "osm_vias": [
+        8765960
+      ]
+    },
+    {
+      "id": "e_joaquim_pedro__rotatoria_dom_serafim",
+      "origem": "no_joaquim_pedro",
+      "destino": "no_rotatoria_dom_serafim",
+      "nome_rua": "Rua Dom Joaquim Silvério",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        319379245
+      ]
+    },
+    {
+      "id": "e_joaquim_rossini__lucio_rossini",
+      "origem": "no_joaquim_rossini",
+      "destino": "no_lucio_rossini",
+      "nome_rua": "Rua Padre Rossini Cândido",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        222811610
+      ]
+    },
+    {
+      "id": "e_lombaerde_curva__lombaerde_mazzarello_ivan",
+      "origem": "no_lombaerde_curva",
+      "destino": "no_lombaerde_mazzarello_ivan",
+      "nome_rua": "Rua Padre Júlio Lombaerde",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        222521025
+      ]
+    },
+    {
+      "id": "e_lombaerde_curva__lombaerde_sao_pedro",
+      "origem": "no_lombaerde_curva",
+      "destino": "no_lombaerde_sao_pedro",
+      "nome_rua": "Rua Padre Júlio Lombaerde",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        222521025
+      ]
+    },
+    {
+      "id": "e_lombaerde_edna__lombaerde_sao_pedro",
+      "origem": "no_lombaerde_edna",
+      "destino": "no_lombaerde_sao_pedro",
+      "nome_rua": "Rua Padre Júlio Lombaerde",
+      "velocidade_kmh": 30.0,
+      "oneway": false,
+      "osm_vias": [
+        222521025
+      ]
+    },
+    {
+      "id": "e_lombaerde_mazzarello_ivan__lombaerde_frambach",
+      "origem": "no_lombaerde_mazzarello_ivan",
+      "destino": "no_lombaerde_frambach",
+      "nome_rua": "Rua Padre Júlio Lombaerde",
+      "velocidade_kmh": 30.0,
+      "oneway": true,
+      "osm_vias": [
+        427909965
+      ]
+    },
+    {
+      "id": "e_lucio_aristides__lucio_demerval",
+      "origem": "no_lucio_aristides",
+      "destino": "no_lucio_demerval",
+      "nome_rua": "Rua Dom Lúcio Antunes",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        9805945
+      ]
+    },
+    {
+      "id": "e_lucio_demerval__lucio_coracao",
+      "origem": "no_lucio_demerval",
+      "destino": "no_lucio_coracao",
+      "nome_rua": "Rua Dom Lúcio Antunes",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        656032064
+      ]
+    },
+    {
+      "id": "e_lucio_coracao__lucio_pedro",
+      "origem": "no_lucio_coracao",
+      "destino": "no_lucio_pedro",
+      "nome_rua": "Rua Dom Lúcio Antunes",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        656032064
+      ]
+    },
+    {
+      "id": "e_lucio_coracao__rotatoria_dom_serafim",
+      "origem": "no_lucio_coracao",
+      "destino": "no_rotatoria_dom_serafim",
       "nome_rua": "Rua Coração Eucarístico de Jesus",
       "velocidade_kmh": 40.0,
-      "oneway": true
+      "oneway": false,
+      "osm_vias": [
+        960877444
+      ]
     },
     {
-      "id": "e_coreu_leste_djg_centro",
-      "origem": "no_coreu_jesus_leste",
-      "destino": "no_dom_jose_gaspar_centro",
-      "nome_rua": "Rua Coração Eucarístico de Jesus",
-      "velocidade_kmh": 30.0,
-      "oneway": false
-    },
-    {
-      "id": "e_djg_centro_coreu_centro",
-      "origem": "no_dom_jose_gaspar_centro",
-      "destino": "no_coreu_jesus_centro",
-      "nome_rua": "Travessa Coração Eucarístico",
-      "velocidade_kmh": 30.0,
-      "oneway": false
-    },
-    {
-      "id": "e_coreu_centro_dom_joaquim_centro",
-      "origem": "no_coreu_jesus_centro",
-      "destino": "no_dom_joaquim_centro",
-      "nome_rua": "Rua Dom Joaquim Silvério",
-      "velocidade_kmh": 30.0,
-      "oneway": false
-    },
-    {
-      "id": "e_dom_joaquim_centro_sul",
-      "origem": "no_dom_joaquim_centro",
-      "destino": "no_dom_joaquim_sul",
-      "nome_rua": "Rua Dom Joaquim Silvério",
-      "velocidade_kmh": 30.0,
-      "oneway": true
-    },
-    {
-      "id": "e_dom_joaquim_sul_av31",
-      "origem": "no_dom_joaquim_sul",
-      "destino": "no_av31_marco_sul",
-      "nome_rua": "Avenida 31 de Março - Alça de Acesso",
-      "velocidade_kmh": 60.0,
-      "oneway": false
-    },
-    {
-      "id": "e_av31_norte_sul",
-      "origem": "no_av31_marco_norte",
-      "destino": "no_av31_marco_sul",
-      "nome_rua": "Avenida Presidente Juscelino Kubitschek",
-      "velocidade_kmh": 60.0,
-      "oneway": true
-    },
-    {
-      "id": "e_coreu_leste_av31_norte",
-      "origem": "no_coreu_jesus_leste",
-      "destino": "no_av31_marco_norte",
-      "nome_rua": "Rua Conde Pereira Carneiro",
+      "id": "e_lucio_rossini__lucio_crisostomo",
+      "origem": "no_lucio_rossini",
+      "destino": "no_lucio_crisostomo",
+      "nome_rua": "Rua Dom Lúcio Antunes",
       "velocidade_kmh": 40.0,
-      "oneway": false
+      "oneway": true,
+      "osm_vias": [
+        656032064
+      ]
     },
     {
-      "id": "e_av31_sul_metro",
-      "origem": "no_av31_marco_sul",
-      "destino": "no_metro_gameleira",
-      "nome_rua": "Acesso Terminal Metrô Gameleira",
-      "velocidade_kmh": 30.0,
-      "oneway": false
+      "id": "e_lucio_pedro__lucio_rossini",
+      "origem": "no_lucio_pedro",
+      "destino": "no_lucio_rossini",
+      "nome_rua": "Rua Dom Lúcio Antunes",
+      "velocidade_kmh": 40.0,
+      "oneway": true,
+      "osm_vias": [
+        656032064
+      ]
+    },
+    {
+      "id": "e_portaria_puc__puc_via_interna",
+      "origem": "no_portaria_puc",
+      "destino": "no_puc_via_interna",
+      "nome_rua": "Via interna da PUC Minas",
+      "velocidade_kmh": 20.0,
+      "oneway": false,
+      "osm_vias": [
+        835017734,
+        972259968
+      ]
     }
   ]
 }

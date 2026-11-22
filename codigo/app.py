@@ -8,21 +8,37 @@ from mapa import (
     carregar_pois,
     carregar_mapa,
     construir_grafo,
-    associar_poi_ao_no_mais_proximo,
     salvar_poi_cache,
     remover_poi_cache,
     buscar_poi_api,
     geocodificar_endereco,
-    BBOX_BH
+    calcular_bbox_area,
+    separar_pois_por_area
 )
-from rotas import calcularRotaDijkstra, calcularRotaBellmanFord
+from apoio_interface import (
+    ALGORITMOS,
+    ROTULOS_CRITERIOS,
+    aviso_poucos_pois_na_area,
+    calcular_rota_entre_pois,
+    formatar_distancia,
+    formatar_km,
+    formatar_minutos,
+    formatar_reais,
+    legenda_pois_fora_da_area,
+    limites_do_enquadramento,
+    limites_dos_pontos,
+    motivo_fora_da_area,
+    parametros_da_selecao,
+    rota_corresponde_a_selecao,
+    trechos_do_mapa
+)
 
 CAMINHO_POIS = os.path.join(os.path.dirname(__file__), "dados", "pontos_interesse.json")
 CAMINHO_MAPA = os.path.join(os.path.dirname(__file__), "dados", "mapa.json")
 
 st.set_page_config(
     page_title="Sistema de Rotas - Belo Horizonte",
-    page_icon="🗺️",
+    page_icon=":material/map:",
     layout="wide"
 )
 
@@ -44,7 +60,7 @@ def obter_grafo():
     return construir_grafo(dados_mapa)
 
 
-def criar_mapa(pois, rota=None):
+def criar_mapa(pois, rota=None, trechos_mapa=()):
     # Centro panorâmico de Belo Horizonte para visualização ampla dos pontos turísticos
     mapa = folium.Map(
         location=[-19.9190, -43.9550],
@@ -52,7 +68,26 @@ def criar_mapa(pois, rota=None):
         control_scale=True
     )
 
+    # Área do mapa: ruas cobertas pelo grafo, em cinza claro por baixo do resto
+    for trecho in trechos_mapa:
+        folium.PolyLine(
+            locations=trecho,
+            color="#8c8c8c",
+            weight=3,
+            opacity=0.6
+        ).add_to(mapa)
+    if trechos_mapa and not rota:
+        # Sem rota, enquadra a área do mapa (em BH inteira ela ficaria pequena demais)
+        mapa.fit_bounds(limites_dos_pontos([p for trecho in trechos_mapa for p in trecho]), padding=(20, 20))
+
+    # Origem e destino da rota têm marcadores próprios, sem o azul por baixo
+    ids_origem_destino = set()
+    if rota:
+        ids_origem_destino = {rota["origem"]["poi"]["id"], rota["destino"]["poi"]["id"]}
+
     for poi in pois:
+        if poi["id"] in ids_origem_destino:
+            continue
         coords = poi["coordenadas"]
         nome = poi["nome"]
         cat = poi.get("categoria", "Ponto")
@@ -66,7 +101,10 @@ def criar_mapa(pois, rota=None):
             )
         ).add_to(mapa)
 
-    if rota and rota["caminho"]:
+    if rota:
+        origem = rota["origem"]
+        destino = rota["destino"]
+
         folium.PolyLine(
             locations=rota["caminho"],
             color="red",
@@ -75,9 +113,21 @@ def criar_mapa(pois, rota=None):
             tooltip="Rota calculada no grafo viário"
         ).add_to(mapa)
 
+        # Trecho a pé, em linha reta, entre cada POI e o vértice associado a ele
+        for trecho in (origem, destino):
+            folium.PolyLine(
+                locations=[trecho["poi"]["coordenadas"], trecho["coordenadas_vertice"]],
+                color="gray",
+                weight=3,
+                opacity=0.9,
+                dash_array="6, 8",
+                tooltip=f"A pé até o grafo: {formatar_distancia(trecho['distancia_m'])}"
+            ).add_to(mapa)
+
         folium.Marker(
-            location=rota["caminho"][0],
-            popup="Origem",
+            location=origem["poi"]["coordenadas"],
+            popup=f"<b>Origem</b><br>{origem['poi']['nome']}",
+            tooltip=f"Origem: {origem['poi']['nome']}",
             icon=folium.Icon(
                 color="green",
                 icon="play"
@@ -85,29 +135,45 @@ def criar_mapa(pois, rota=None):
         ).add_to(mapa)
 
         folium.Marker(
-            location=rota["caminho"][-1],
-            popup="Destino",
+            location=destino["poi"]["coordenadas"],
+            popup=f"<b>Destino</b><br>{destino['poi']['nome']}",
+            tooltip=f"Destino: {destino['poi']['nome']}",
             icon=folium.Icon(
                 color="red",
                 icon="flag"
             )
         ).add_to(mapa)
 
-        mapa.fit_bounds(rota["caminho"])
+        mapa.fit_bounds(limites_do_enquadramento(rota), padding=(30, 30))
 
     return mapa
 
 
-def exibir_metricas(rota):
+def exibir_informacoes_rota(rota):
     resultado = rota["resultado"]
-    coluna1, coluna2, coluna3 = st.columns(3)
-    if not resultado.foiEncontrada():
-        st.error("Destino inalcançável." if resultado.situacao == "inalcancavel" else "Não foi possível calcular a rota: solicitação inválida ou ciclo negativo.")
-        return
-    coluna1.metric("Distância", f"{resultado.getDistanciaKm():.2f} km")
-    coluna2.metric("Tempo estimado", f"{resultado.getTempoMinutos():.1f} min")
-    coluna3.metric("Custo", f"R$ {resultado.custoTotalReais:.2f}")
-    st.caption(f"Algoritmo: {rota['algoritmo']} · Nós expandidos: {resultado.nosExpandidos}")
+    parametros = rota["parametros"]
+    origem = rota["origem"]
+    destino = rota["destino"]
+
+    # Uma métrica por linha: em três colunas dentro do painel estreito os valores eram cortados
+    st.metric("Distância", formatar_km(resultado.distanciaTotalMetros))
+    st.metric("Tempo estimado", formatar_minutos(resultado.tempoTotalSegundos))
+    st.metric("Custo", formatar_reais(resultado.custoTotalReais))
+    st.caption(
+        f"Critério: {parametros['criterio']} · Algoritmo: {parametros['algoritmo']} · "
+        f"Nós expandidos: {resultado.nosExpandidos}"
+    )
+
+    st.write("**Trechos a pé** (em linha reta, fora dos totais acima):")
+    st.markdown(
+        f"- Origem: {origem['poi']['nome']} → {origem['nome_vertice']}: "
+        f"**{formatar_distancia(origem['distancia_m'])}**\n"
+        f"- Destino: {destino['nome_vertice']} → {destino['poi']['nome']}: "
+        f"**{formatar_distancia(destino['distancia_m'])}**"
+    )
+
+    st.write("**Caminho encontrado:**")
+    st.write(" → ".join(rota["nomes_caminho"]))
 
 
 def main():
@@ -115,8 +181,14 @@ def main():
 
     pois = obter_pois()
     grafo = obter_grafo()
+    bbox_area = calcular_bbox_area(grafo)
+    trechos_mapa = trechos_do_mapa(grafo)
     pois_ordenados = sorted(pois, key=lambda p: p["nome"].lower())
     nomes_pois = [p["nome"] for p in pois_ordenados]
+
+    # Só podem ser origem ou destino os POIs a até LIMITE_ASSOCIACAO_METROS de um vértice
+    pois_na_area, pois_fora_da_area = separar_pois_por_area(pois_ordenados, grafo)
+    nomes_na_area = [p["nome"] for p in pois_na_area]
 
     # Inicializa estados de busca na sessão
     if "resultados_busca" not in st.session_state:
@@ -124,27 +196,28 @@ def main():
 
     # Barra lateral: Gerenciamento e Busca de POIs
     with st.sidebar:
-        st.header("📍 Pontos de Interesse (POIs)")
+        st.header(":material/location_on: Pontos de Interesse (POIs)")
         st.caption(f"Catálogo offline com **{len(pois)} locais** em Belo Horizonte.")
 
         # Aba 1: Busca Dinâmica na API
-        with st.expander("🔍 Buscar Local ou Ponto (API Online)", expanded=True):
+        with st.expander("Buscar Local ou Ponto (API Online)", expanded=True, icon=":material/search:"):
+            st.caption("A busca considera só a área do mapa (ruas em cinza).")
             termo = st.text_input(
                 "Nome do local ou referência:",
-                placeholder="Ex: Drogaria Araujo, Praça Sete, Pão de Queijo...",
+                placeholder="Ex: padaria, farmácia, Praça Cardeal Dom Serafim...",
                 key="input_busca_termo"
             )
-            col_b1, col_b2 = st.columns([2, 1])
-            if col_b1.button("Buscar em BH", use_container_width=True, type="primary"):
+            # Um botão por linha: lado a lado, o nome do bairro e o "Limpar" eram cortados
+            if st.button("Buscar na área do mapa", use_container_width=True, type="primary"):
                 if termo.strip():
                     with st.spinner("Consultando OpenStreetMap..."):
-                        st.session_state["resultados_busca"] = buscar_poi_api(termo)
+                        st.session_state["resultados_busca"] = buscar_poi_api(termo, bbox=bbox_area)
                     if not st.session_state["resultados_busca"]:
-                        st.warning("Nenhum local encontrado em BH ou conexão indisponível.")
+                        st.warning("Nenhum local encontrado na área do mapa ou conexão indisponível.")
                 else:
                     st.session_state["resultados_busca"] = []
 
-            if col_b2.button("Limpar", use_container_width=True):
+            if st.button("Limpar", use_container_width=True):
                 st.session_state["resultados_busca"] = []
                 st.rerun()
 
@@ -155,11 +228,15 @@ def main():
                     with st.container(border=True):
                         st.markdown(f"**{r['nome']}**")
                         if r.get("endereco"):
-                            st.caption(f"📍 {r['endereco']}")
+                            st.caption(f":material/location_on: {r['endereco']}")
                         else:
-                            st.caption(f"🏷️ Categoria: {r.get('categoria', 'geral')}")
+                            st.caption(f":material/label: Categoria: {r.get('categoria', 'geral')}")
 
-                        if st.button("➕ Salvar no Catálogo", key=f"btn_salvar_{idx}_{r['id']}", use_container_width=True):
+                        fora_da_area = motivo_fora_da_area(r, grafo)
+                        if fora_da_area:
+                            st.caption(f":material/warning: Fora da área do mapa: {fora_da_area}. Não pode ser salvo.")
+                        elif st.button("Salvar no Catálogo", key=f"btn_salvar_{idx}_{r['id']}", use_container_width=True,
+                                       icon=":material/add:"):
                             sucesso = salvar_poi_cache(r, CAMINHO_POIS)
                             if sucesso:
                                 st.session_state["pois"] = carregar_pois(CAMINHO_POIS)
@@ -169,39 +246,48 @@ def main():
                                 st.info("Este local já está cadastrado no catálogo.")
 
         # Aba 2: Adicionar Endereço Textual Direto
-        with st.expander("📝 Cadastrar Endereço Manual", expanded=False):
+        with st.expander("Cadastrar Endereço Manual", expanded=False, icon=":material/edit_note:"):
             nome_manual = st.text_input("Apelido do Local:", placeholder="Ex: Casa, Escritório, Academia...")
-            end_manual = st.text_input("Endereço completo em BH:", placeholder="Ex: Av. Afonso Pena, 1500 ou Rua Dom José Gaspar, 500")
+            end_manual = st.text_input("Endereço (dentro da área do mapa):", placeholder="Ex: Avenida Dom José Gaspar, 500")
             cat_manual = st.selectbox("Categoria:", ["ponto", "compras", "alimentacao", "educacao", "saude", "transporte", "lazer", "residencia"])
 
             if st.button("Buscar Coordenadas e Salvar", use_container_width=True):
                 if nome_manual.strip() and end_manual.strip():
                     with st.spinner("Geocodificando endereço..."):
-                        poi_geo = geocodificar_endereco(end_manual)
-                    if poi_geo:
-                        poi_geo["nome"] = nome_manual.strip()
-                        poi_geo["categoria"] = cat_manual
-                        sucesso = salvar_poi_cache(poi_geo, CAMINHO_POIS)
-                        if sucesso:
-                            st.session_state["pois"] = carregar_pois(CAMINHO_POIS)
-                            st.success(f"Local '{nome_manual}' salvo com sucesso!")
-                            st.rerun()
-                        else:
-                            st.info("Já existe um local com esse nome no catálogo.")
+                        # A área só dá preferência: um endereço de fora volta e o aviso diz onde ele fica
+                        poi_geo = geocodificar_endereco(end_manual, bbox=bbox_area, somente_na_bbox=False)
+                    if not poi_geo:
+                        st.error("Endereço não encontrado ou conexão indisponível. Nada foi salvo.")
                     else:
-                        st.error("Não foi possível encontrar as coordenadas para este endereço em BH.")
+                        fora_da_area = motivo_fora_da_area(poi_geo, grafo)
+                        if fora_da_area:
+                            st.error(
+                                f"Endereço encontrado ({poi_geo['endereco']}), mas fora da área do mapa: "
+                                f"{fora_da_area}. Nada foi salvo."
+                            )
+                        else:
+                            poi_geo["nome"] = nome_manual.strip()
+                            poi_geo["categoria"] = cat_manual
+                            sucesso = salvar_poi_cache(poi_geo, CAMINHO_POIS)
+                            if sucesso:
+                                st.session_state["pois"] = carregar_pois(CAMINHO_POIS)
+                                st.success(f"Local '{nome_manual}' salvo com sucesso!")
+                                st.rerun()
+                            else:
+                                st.info("Já existe um local com esse nome no catálogo.")
                 else:
                     st.warning("Preencha o nome e o endereço completo.")
 
         # Aba 3: Remover Local do Catálogo
-        with st.expander("🗑️ Remover Local do Catálogo", expanded=False):
+        with st.expander("Remover Local do Catálogo", expanded=False, icon=":material/delete:"):
             if nomes_pois:
                 local_a_remover = st.selectbox(
                     "Selecione o local para excluir:",
                     nomes_pois,
                     key="sb_remover_poi"
                 )
-                if st.button("🗑️ Excluir Local Selecionado", use_container_width=True, type="secondary"):
+                if st.button("Excluir Local Selecionado", use_container_width=True, type="secondary",
+                             icon=":material/delete:"):
                     if remover_poi_cache(local_a_remover, CAMINHO_POIS):
                         st.session_state["pois"] = carregar_pois(CAMINHO_POIS)
                         st.session_state.pop("rota", None)
@@ -223,83 +309,62 @@ def main():
         "e escolha o critério para calcular a rota."
     )
 
-    coluna1, coluna2, coluna3, coluna4 = st.columns(4)
+    legenda_fora = legenda_pois_fora_da_area(len(pois_fora_da_area), len(pois))
+    if legenda_fora:
+        st.caption(legenda_fora)
 
-    with coluna1:
-        origem_nome = st.selectbox(
-            "Ponto de origem",
-            nomes_pois if nomes_pois else ["Sem POIs cadastrados"],
-            disabled=not nomes_pois
+    # Sem seleção completa, não há com o que comparar a rota guardada
+    parametros_atuais = None
+    aviso_poucos_pois = aviso_poucos_pois_na_area(len(nomes_na_area))
+
+    if aviso_poucos_pois:
+        st.warning(aviso_poucos_pois)
+    else:
+        coluna1, coluna2, coluna3, coluna4 = st.columns(4)
+
+        with coluna1:
+            origem_nome = st.selectbox("Ponto de origem", nomes_na_area)
+
+        with coluna2:
+            destino_nome = st.selectbox("Ponto de destino", nomes_na_area, index=1)
+
+        with coluna3:
+            criterio = st.selectbox("Critério de otimização", list(ROTULOS_CRITERIOS))
+
+        with coluna4:
+            algoritmo = st.selectbox("Algoritmo", list(ALGORITMOS))
+
+        parametros_atuais = parametros_da_selecao(origem_nome, destino_nome, criterio, algoritmo)
+
+        botao_calcular = st.button(
+            "Calcular rota",
+            type="primary",
+            use_container_width=True
         )
 
-    with coluna2:
-        destino_nome = st.selectbox(
-            "Ponto de destino",
-            nomes_pois if nomes_pois else ["Sem POIs cadastrados"],
-            index=1 if len(nomes_pois) > 1 else 0,
-            disabled=not nomes_pois
-        )
-
-    with coluna3:
-        criterio = st.selectbox(
-            "Critério de otimização",
-            ["Distância", "Tempo", "Custo"]
-        )
-
-    with coluna4:
-        algoritmo = st.selectbox("Algoritmo", ["Dijkstra", "Bellman-Ford"])
-
-    botao_calcular = st.button(
-        "Calcular rota",
-        type="primary",
-        use_container_width=True
-    )
-
-    if botao_calcular:
-        if not nomes_pois:
-            st.warning("Cadastre ao menos um ponto de interesse.")
-        elif origem_nome == destino_nome:
+        if botao_calcular:
+            # A rota anterior sai antes do cálculo e só é substituída se este der certo
             st.session_state.pop("rota", None)
+            try:
+                origem = next(poi for poi in pois_na_area if poi["nome"] == origem_nome)
+                destino = next(poi for poi in pois_na_area if poi["nome"] == destino_nome)
+                rota, aviso = calcular_rota_entre_pois(grafo, origem, destino, criterio, algoritmo)
+            except Exception as erro:
+                st.error(f"Não foi possível calcular a rota: {erro}")
+            else:
+                if aviso:
+                    st.warning(aviso)
+                else:
+                    st.session_state["rota"] = rota
 
-            st.warning(
-                "A origem e o destino devem ser diferentes."
-            )
-
-        else:
-            origem = next(
-                poi for poi in pois
-                if poi["nome"] == origem_nome
-            )
-
-            destino = next(
-                poi for poi in pois
-                if poi["nome"] == destino_nome
-            )
-
-            id_origem = origem.get("no_viario_associado")
-            id_destino = destino.get("no_viario_associado")
-            if id_origem not in grafo.vertices:
-                id_origem = associar_poi_ao_no_mais_proximo(origem, grafo.vertices)
-            if id_destino not in grafo.vertices:
-                id_destino = associar_poi_ao_no_mais_proximo(destino, grafo.vertices)
-            funcao = calcularRotaDijkstra if algoritmo == "Dijkstra" else calcularRotaBellmanFord
-            resultado = funcao(grafo, id_origem, id_destino, criterio)
-            vertices_rota = resultado.getVerticesCaminho()
-            if resultado.foiEncontrada() and not vertices_rota:
-                vertices_rota = [grafo.getVertice(id_origem)]
-            st.session_state["rota"] = {
-                "resultado": resultado,
-                "caminho": [[v.latitude, v.longitude] for v in vertices_rota],
-                "nomes_caminho": [v.nome or v.id for v in vertices_rota],
-                "criterio": criterio,
-                "algoritmo": algoritmo,
-            }
-
-    rota_atual = st.session_state.get("rota")
+    rota_guardada = st.session_state.get("rota")
+    # Rota calculada com outra origem, destino, critério ou algoritmo não é desenhada
+    rota_atual = rota_guardada if rota_corresponde_a_selecao(rota_guardada, parametros_atuais) else None
 
     mapa = criar_mapa(
         pois,
-        rota_atual
+        rota_atual,
+        trechos_mapa
     )
 
     coluna_mapa, coluna_metricas = st.columns([2, 1])
@@ -318,14 +383,12 @@ def main():
         st.subheader("Informações da rota")
 
         if rota_atual:
-            exibir_metricas(rota_atual)
-
-            if rota_atual["resultado"].foiEncontrada():
-                st.write("**Caminho encontrado:**")
-
-                st.write(" → ".join(rota_atual["nomes_caminho"]))
-                st.write(f'**Critério:** {rota_atual["criterio"]}')
-
+            exibir_informacoes_rota(rota_atual)
+        elif rota_guardada:
+            st.info(
+                "A seleção mudou desde o último cálculo. "
+                "Clique em 'Calcular rota' para recalcular a rota."
+            )
         else:
             st.info(
                 "Selecione a origem, o destino e o critério. "

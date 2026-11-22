@@ -8,7 +8,9 @@ A suíte `codigo/tests/test_rotas_dijkstra_bellman_ford.py` executa Dijkstra e B
 
 A interface liga os POIs aos vértices associados no snapshot e permite selecionar o algoritmo e critério. Testes automatizados de interface ponta a ponta ainda não constam na suíte. Há dois detalhes de interpretação: `nosExpandidos` conta vértices amadurecidos no Dijkstra e vértices examinados por passada no Bellman-Ford; os números não são diretamente equivalentes. Além disso, o benchmark deve usar os mesmos IDs de origem/destino já associados para os dois algoritmos.
 
-Execute a suíte com `python -m pytest codigo/tests -v` a partir da raiz do repositório. O tempo total do pytest não é métrica de busca.
+`codigo/test_rotas.py` reúne testes independentes de modelo, importação e busca com grafos pequenos e respostas ótimas conhecidas (inclusive por força bruta): três critérios com rotas diferentes, mão única, arestas paralelas, empates, origem = destino, destino inalcançável, arquivos/referências/pesos inválidos e soma dos pesos igual ao custo informado. Uma fixture bloqueia qualquer acesso à rede durante esses testes.
+
+Execute a suíte completa com `python -m pytest codigo -v` a partir da raiz do repositório, ou apenas esses testes com `python -m pytest codigo/test_rotas.py -v`. O tempo total do pytest não é métrica de busca.
 
 ## Protocolo e resultado do benchmark no snapshot local
 
